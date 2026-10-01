@@ -24,6 +24,7 @@ import PublicOnlyRoute from './components/auth/PublicOnlyRoute.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import UsersPage from './pages/UsersPage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -52,16 +53,12 @@ export default function App() {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
 
-        {/* Future Modules with Role-Based Route Guards */}
+        {/* User Management – SYSTEM_ADMIN only */}
         <Route
           path="/users"
           element={
             <ProtectedRoute roles={['SYSTEM_ADMIN']}>
-              <ComingSoonPage
-                title="User Management"
-                description="Manage user accounts, roles, departments, and system access."
-                icon="users"
-              />
+              <UsersPage />
             </ProtectedRoute>
           }
         />
