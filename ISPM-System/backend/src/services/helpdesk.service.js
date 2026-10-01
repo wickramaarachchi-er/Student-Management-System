@@ -3,6 +3,7 @@
  * Business logic for Helpdesk tickets and responses.
  */
 import prisma from '../config/prisma.js';
+import { createNotification, createBulkNotifications } from './notification.service.js';
 
 const USER_SELECT_SAFE = {
   id: true,
@@ -151,6 +152,41 @@ export async function addTicketResponse({ ticketId, responderId, userRole, respo
       updatedAt: new Date(),
     },
   });
+
+  // Trigger Notification for recipient(s)
+  try {
+    if (userRole === 'SYSTEM_ADMIN') {
+      // Admin replied -> Notify ticket owner if different from responder
+      if (ticket.creatorId && ticket.creatorId !== responderId) {
+        await createNotification({
+          recipientId: ticket.creatorId,
+          title: 'Helpdesk Reply',
+          message: 'A System Administrator replied to your security query.',
+          type: 'TICKET_UPDATE',
+          resourceRef: ticketId,
+        });
+      }
+    } else {
+      // Employee replied -> Notify active System Admins
+      const activeAdmins = await prisma.user.findMany({
+        where: { role: 'SYSTEM_ADMIN', isActive: true },
+        select: { id: true },
+      });
+
+      const adminIds = activeAdmins.map((a) => a.id).filter((id) => id !== responderId);
+      if (adminIds.length > 0) {
+        await createBulkNotifications({
+          recipientIds: adminIds,
+          title: 'Helpdesk Follow-up Reply',
+          message: `An employee replied to helpdesk ticket: "${ticket.subject}".`,
+          type: 'TICKET_UPDATE',
+          resourceRef: ticketId,
+        });
+      }
+    }
+  } catch (notifErr) {
+    console.error('[helpdesk.service] Failed to send ticket response notifications:', notifErr.message);
+  }
 
   return { response };
 }

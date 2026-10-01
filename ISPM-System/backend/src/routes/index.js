@@ -13,6 +13,7 @@ import trainingRouter from './training.js';
 import quizRouter from './quiz.js';
 import complianceRouter from './compliance.js';
 import helpdeskRouter from './helpdesk.js';
+import notificationRouter from './notification.js';
 
 const router = Router();
 
@@ -39,6 +40,9 @@ router.use('/compliance', complianceRouter);
 
 // Helpdesk & Security Query – /api/helpdesk (SYSTEM_ADMIN, EMPLOYEE)
 router.use('/helpdesk', helpdeskRouter);
+
+// Notifications – /api/notifications (All authenticated roles)
+router.use('/notifications', notificationRouter);
 
 // DEVELOPMENT ONLY – RBAC verification routes; remove before production
 router.use('/test', testRouter);

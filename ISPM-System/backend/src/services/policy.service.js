@@ -3,6 +3,7 @@
  * Business logic for Information Security Policies, Versioning, and Acknowledgements.
  */
 import prisma from '../config/prisma.js';
+import { createBulkNotifications } from './notification.service.js';
 
 /**
  * Helper to determine the current published PolicyVersion for a given policy.
@@ -423,6 +424,7 @@ export async function createPolicyVersion(policyId, versionData, userEmail) {
  *
  * Atomic transaction:
  * - Updates Policy status to PUBLISHED and publishedAt to now()
+ * - Notifies matching active employees
  *
  * @param {string} policyId
  * @param {string} versionId
@@ -455,6 +457,34 @@ export async function publishPolicyVersion(policyId, versionId) {
       versions: { orderBy: { versionNumber: 'desc' } },
     },
   });
+
+  // Trigger Notifications for matching active Employees
+  try {
+    const userWhere = {
+      role: 'EMPLOYEE',
+      isActive: true,
+    };
+    if (updatedPolicy.targetDepartment && updatedPolicy.targetDepartment.trim() !== '') {
+      userWhere.department = updatedPolicy.targetDepartment.trim();
+    }
+
+    const matchingEmployees = await prisma.user.findMany({
+      where: userWhere,
+      select: { id: true },
+    });
+
+    if (matchingEmployees.length > 0) {
+      await createBulkNotifications({
+        recipientIds: matchingEmployees.map((e) => e.id),
+        title: 'Policy Update Required',
+        message: `A new version of "${updatedPolicy.title}" requires your acknowledgement.`,
+        type: 'POLICY_PUBLISHED',
+        resourceRef: updatedPolicy.id,
+      });
+    }
+  } catch (notifErr) {
+    console.error('[policy.service] Failed to send publication notifications:', notifErr.message);
+  }
 
   return { policy: updatedPolicy, version };
 }

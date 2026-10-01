@@ -3,6 +3,7 @@
  * Business logic for Training Modules and Employee Training Progress.
  */
 import prisma from '../config/prisma.js';
+import { createBulkNotifications } from './notification.service.js';
 
 /**
  * List training modules based on user role and filters.
@@ -283,7 +284,7 @@ export async function publishTrainingModule(id) {
     return existing;
   }
 
-  return prisma.trainingModule.update({
+  const updatedModule = await prisma.trainingModule.update({
     where: { id },
     data: { isPublished: true },
     include: {
@@ -292,6 +293,28 @@ export async function publishTrainingModule(id) {
       },
     },
   });
+
+  // Notify active Employees about new training module
+  try {
+    const activeEmployees = await prisma.user.findMany({
+      where: { role: 'EMPLOYEE', isActive: true },
+      select: { id: true },
+    });
+
+    if (activeEmployees.length > 0) {
+      await createBulkNotifications({
+        recipientIds: activeEmployees.map((e) => e.id),
+        title: 'New Training Available',
+        message: `"${updatedModule.title}" is now available for completion.`,
+        type: 'TRAINING_ASSIGNED',
+        resourceRef: updatedModule.id,
+      });
+    }
+  } catch (notifErr) {
+    console.error('[training.service] Failed to send training notifications:', notifErr.message);
+  }
+
+  return updatedModule;
 }
 
 /**
