@@ -15,6 +15,7 @@ import complianceRouter from './compliance.js';
 import helpdeskRouter from './helpdesk.js';
 import notificationRouter from './notification.js';
 import auditLogRouter from './auditLog.js';
+import dashboardRouter from './dashboard.js';
 
 const router = Router();
 
@@ -23,6 +24,9 @@ router.use('/health', healthRouter);
 
 // Authentication – POST /auth/login (public) + GET /auth/me (protected)
 router.use('/auth', authRouter);
+
+// Role-Based Dashboard – /api/dashboard (All authenticated roles)
+router.use('/dashboard', dashboardRouter);
 
 // User Management – /api/users (SYSTEM_ADMIN only)
 router.use('/users', userRouter);
