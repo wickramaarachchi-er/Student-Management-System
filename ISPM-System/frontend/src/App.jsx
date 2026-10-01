@@ -34,6 +34,7 @@ import ComplianceDashboardPage from './pages/ComplianceDashboardPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
 import HelpdeskPage from './pages/HelpdeskPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
+import AuditLogsPage from './pages/AuditLogsPage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -157,11 +158,7 @@ export default function App() {
           path="/audit-logs"
           element={
             <ProtectedRoute roles={['SYSTEM_ADMIN', 'COMPLIANCE_OFFICER']}>
-              <ComingSoonPage
-                title="Security Audit Logs"
-                description="Inspect tamper-evident records of authentication events, policy edits, and administrative actions."
-                icon="shield-check"
-              />
+              <AuditLogsPage />
             </ProtectedRoute>
           }
         />

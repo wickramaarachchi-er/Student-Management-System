@@ -14,6 +14,7 @@ import quizRouter from './quiz.js';
 import complianceRouter from './compliance.js';
 import helpdeskRouter from './helpdesk.js';
 import notificationRouter from './notification.js';
+import auditLogRouter from './auditLog.js';
 
 const router = Router();
 
@@ -43,6 +44,9 @@ router.use('/helpdesk', helpdeskRouter);
 
 // Notifications – /api/notifications (All authenticated roles)
 router.use('/notifications', notificationRouter);
+
+// Audit Logs – /api/audit-logs (SYSTEM_ADMIN, COMPLIANCE_OFFICER only – READ ONLY)
+router.use('/audit-logs', auditLogRouter);
 
 // DEVELOPMENT ONLY – RBAC verification routes; remove before production
 router.use('/test', testRouter);
