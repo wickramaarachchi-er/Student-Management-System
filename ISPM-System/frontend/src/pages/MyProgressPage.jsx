@@ -6,12 +6,16 @@
 import { useState, useEffect } from 'react';
 import { getMyProgressRequest } from '../services/training.service.js';
 import { getMyQuizResultsRequest } from '../services/quiz.service.js';
+import { getMyComplianceRequest } from '../services/compliance.service.js';
+import { useNavigate } from 'react-router-dom';
 import Icon from '../components/common/Icon.jsx';
 import TrainingDetailModal from '../components/training/TrainingDetailModal.jsx';
 
 export default function MyProgressPage() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [quizResults, setQuizResults] = useState([]);
+  const [complianceData, setComplianceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedModuleId, setSelectedModuleId] = useState(null);
@@ -20,9 +24,10 @@ export default function MyProgressPage() {
     setLoading(true);
     setError('');
     try {
-      const [trainRes, quizRes] = await Promise.all([
+      const [trainRes, quizRes, compRes] = await Promise.all([
         getMyProgressRequest(),
-        getMyQuizResultsRequest()
+        getMyQuizResultsRequest(),
+        getMyComplianceRequest()
       ]);
 
       if (trainRes.ok && trainRes.data?.success) {
@@ -33,6 +38,10 @@ export default function MyProgressPage() {
 
       if (quizRes.ok && quizRes.data?.success) {
         setQuizResults(quizRes.data.data.results || []);
+      }
+
+      if (compRes.ok && compRes.data?.success) {
+        setComplianceData(compRes.data.data);
       }
     } catch {
       setError('A network error occurred while loading your progress.');
@@ -49,6 +58,46 @@ export default function MyProgressPage() {
   const completionRate = summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0;
   const progressList = data?.progress || [];
 
+  const compStatus = complianceData?.complianceStatus || 'NO_REQUIREMENTS';
+  const compPercentage = complianceData?.compliancePercentage ?? 0;
+  const compCompleted = complianceData?.completedRequirements ?? 0;
+  const compTotal = complianceData?.totalRequirements ?? 0;
+  const compOutstanding = complianceData?.outstandingRequirements ?? 0;
+  const outstandingActions = complianceData?.outstandingActions || [];
+
+  const getCompBadge = (status) => {
+    switch (status) {
+      case 'COMPLIANT':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+            <Icon name="check-circle" className="w-4 h-4 mr-1" />
+            COMPLIANT
+          </span>
+        );
+      case 'PARTIALLY_COMPLIANT':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+            <Icon name="alert-circle" className="w-4 h-4 mr-1" />
+            PARTIALLY COMPLIANT
+          </span>
+        );
+      case 'NON_COMPLIANT':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+            <Icon name="x-circle" className="w-4 h-4 mr-1" />
+            NON-COMPLIANT
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
+            <Icon name="minus-circle" className="w-4 h-4 mr-1" />
+            NO REQUIREMENTS
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -58,9 +107,9 @@ export default function MyProgressPage() {
             <Icon name="user-check" className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">My Security Progress</h1>
+            <h1 className="text-xl font-bold text-slate-800">My Security Progress & Compliance</h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Track your cybersecurity training completions, ongoing courses, and compliance milestones
+              Track your cybersecurity training completions, policy acknowledgements, and quiz achievements
             </p>
           </div>
         </div>
@@ -69,13 +118,117 @@ export default function MyProgressPage() {
         <div className="flex items-center space-x-3 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200/80">
           <div className="text-right">
             <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Training Completion
+              Overall Compliance
             </div>
-            <div className="text-lg font-bold text-slate-800">{completionRate}%</div>
+            <div className="text-lg font-bold text-slate-800">{compPercentage}%</div>
           </div>
           <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-            {summary.completed}/{summary.total}
+            {compCompleted}/{compTotal}
           </div>
+        </div>
+      </div>
+
+      {/* My InfoSec Compliance Summary Box */}
+      <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 rounded-2xl p-6 text-white shadow-md space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-800/60 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">
+                My InfoSec Compliance Summary
+              </span>
+              {getCompBadge(compStatus)}
+            </div>
+            <p className="text-xs text-slate-300">
+              Live status derived from policy acknowledgements, training progress, and quiz scores
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-6 bg-white/10 px-5 py-3 rounded-xl border border-white/10">
+            <div className="text-center">
+              <div className="text-2xl font-black text-white">{compPercentage}%</div>
+              <div className="text-[10px] text-indigo-200 uppercase font-semibold">Compliance Rate</div>
+            </div>
+            <div className="h-8 w-px bg-white/20"></div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-emerald-400">{compCompleted} / {compTotal}</div>
+              <div className="text-[10px] text-indigo-200 uppercase font-semibold">Completed Req.</div>
+            </div>
+            <div className="h-8 w-px bg-white/20"></div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-amber-400">{compOutstanding}</div>
+              <div className="text-[10px] text-indigo-200 uppercase font-semibold">Outstanding</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs text-indigo-200 font-medium">
+            <span>Overall Requirement Fulfillment</span>
+            <span>{compPercentage}% Complete</span>
+          </div>
+          <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-indigo-800/50">
+            <div
+              className={`h-full transition-all duration-500 ${
+                compStatus === 'COMPLIANT'
+                  ? 'bg-emerald-500'
+                  : compStatus === 'PARTIALLY_COMPLIANT'
+                  ? 'bg-amber-400'
+                  : compStatus === 'NON_COMPLIANT'
+                  ? 'bg-rose-500'
+                  : 'bg-slate-500'
+              }`}
+              style={{ width: `${compPercentage}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Outstanding Actions Checklist */}
+        <div className="space-y-3 pt-2">
+          <h3 className="text-xs font-bold text-indigo-200 uppercase tracking-wider flex items-center space-x-2">
+            <Icon name="check-square" className="w-4 h-4 text-amber-400" />
+            <span>Outstanding Action Items ({outstandingActions.length})</span>
+          </h3>
+
+          {outstandingActions.length === 0 ? (
+            <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-4 flex items-center space-x-3 text-emerald-200 text-xs">
+              <Icon name="check-circle" className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+              <span>Great job! You have satisfied all information security requirements. You are fully compliant.</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {outstandingActions.map((act) => (
+                <div
+                  key={act.id}
+                  className="bg-white/5 border border-white/10 hover:border-indigo-400/40 transition-all rounded-xl p-3 flex items-center justify-between space-x-3"
+                >
+                  <div className="flex items-start space-x-2.5 overflow-hidden">
+                    <span
+                      className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                        act.type === 'POLICY'
+                          ? 'bg-indigo-400'
+                          : act.type === 'TRAINING'
+                          ? 'bg-amber-400'
+                          : 'bg-rose-400'
+                      }`}
+                    ></span>
+                    <div>
+                      <p className="text-xs font-semibold text-white truncate">{act.title}</p>
+                      <span className="text-[10px] text-slate-300 capitalize">{(act.type || 'requirement').toLowerCase()} requirement</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => navigate(act.link)}
+                    className="px-3 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-[11px] font-semibold transition-all flex-shrink-0 flex items-center space-x-1 shadow-xs"
+                  >
+                    <span>{act.actionText}</span>
+                    <Icon name="arrow-right" className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

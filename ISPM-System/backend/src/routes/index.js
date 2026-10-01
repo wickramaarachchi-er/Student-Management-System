@@ -11,6 +11,7 @@ import userRouter   from './user.js';
 import policyRouter from './policy.js';
 import trainingRouter from './training.js';
 import quizRouter from './quiz.js';
+import complianceRouter from './compliance.js';
 
 const router = Router();
 
@@ -31,6 +32,9 @@ router.use('/training', trainingRouter);
 
 // Quiz Management, Questions, and Employee Attempts – /api/quizzes (TRAINING_ADMIN, EMPLOYEE)
 router.use('/quizzes', quizRouter);
+
+// Compliance Tracking & Reporting – /api/compliance (COMPLIANCE_OFFICER, EMPLOYEE)
+router.use('/compliance', complianceRouter);
 
 // DEVELOPMENT ONLY – RBAC verification routes; remove before production
 router.use('/test', testRouter);

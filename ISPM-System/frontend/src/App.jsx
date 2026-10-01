@@ -30,6 +30,8 @@ import TrainingPage from './pages/TrainingPage.jsx';
 import TrainingProgressPage from './pages/TrainingProgressPage.jsx';
 import MyProgressPage from './pages/MyProgressPage.jsx';
 import QuizzesPage from './pages/QuizzesPage.jsx';
+import ComplianceDashboardPage from './pages/ComplianceDashboardPage.jsx';
+import ReportsPage from './pages/ReportsPage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -81,11 +83,7 @@ export default function App() {
           path="/compliance"
           element={
             <ProtectedRoute roles={['COMPLIANCE_OFFICER']}>
-              <ComingSoonPage
-                title="Compliance Monitoring"
-                description="Monitor real-time compliance metrics, department adherence, and policy completion rates."
-                icon="award"
-              />
+              <ComplianceDashboardPage />
             </ProtectedRoute>
           }
         />
@@ -94,11 +92,7 @@ export default function App() {
           path="/reports"
           element={
             <ProtectedRoute roles={['COMPLIANCE_OFFICER']}>
-              <ComingSoonPage
-                title="Compliance Reports"
-                description="Generate audit-ready compliance reports and ISO 27001 readiness assessments."
-                icon="chart"
-              />
+              <ReportsPage />
             </ProtectedRoute>
           }
         />
