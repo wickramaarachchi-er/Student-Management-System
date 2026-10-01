@@ -8,14 +8,15 @@
 import { Router } from 'express';
 import { login, getMe } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { loginRateLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
 /**
  * POST /api/auth/login
- * Public – no authentication required.
+ * Public – rate-limited to prevent brute-force attacks.
  */
-router.post('/login', login);
+router.post('/login', loginRateLimiter, login);
 
 /**
  * GET /api/auth/me

@@ -334,6 +334,18 @@ export async function createQuestion(quizId, data) {
     throw err;
   }
 
+  // Prevent modifying quiz questions if submitted attempts exist to preserve audit evidence integrity
+  const submittedAttemptsCount = await prisma.quizAttempt.count({
+    where: { quizId, answers: { some: {} } },
+  });
+  if (submittedAttemptsCount > 0) {
+    const err = new Error(
+      'Cannot modify or add quiz questions after employee attempts have been submitted. Modifying questions would invalidate historical assessment evidence.'
+    );
+    err.status = 409;
+    throw err;
+  }
+
   const options = data.options || [];
   if (options.length < 2) {
     const err = new Error('Questions must have at least 2 answer options.');
@@ -392,6 +404,18 @@ export async function updateQuestion(quizId, questionId, data) {
   if (!question) {
     const err = new Error('Question not found for this quiz.');
     err.status = 404;
+    throw err;
+  }
+
+  // Prevent modifying quiz questions if submitted attempts exist
+  const submittedAttemptsCount = await prisma.quizAttempt.count({
+    where: { quizId, answers: { some: {} } },
+  });
+  if (submittedAttemptsCount > 0) {
+    const err = new Error(
+      'Cannot modify or delete quiz questions after employee attempts have been submitted. Modifying questions would invalidate historical assessment evidence.'
+    );
+    err.status = 409;
     throw err;
   }
 
@@ -457,6 +481,18 @@ export async function deleteQuestion(quizId, questionId) {
   if (!question) {
     const err = new Error('Question not found for this quiz.');
     err.status = 404;
+    throw err;
+  }
+
+  // Prevent deleting quiz questions if submitted attempts exist
+  const submittedAttemptsCount = await prisma.quizAttempt.count({
+    where: { quizId, answers: { some: {} } },
+  });
+  if (submittedAttemptsCount > 0) {
+    const err = new Error(
+      'Cannot delete quiz questions after employee attempts have been submitted. Modifying questions would invalidate historical assessment evidence.'
+    );
+    err.status = 409;
     throw err;
   }
 
