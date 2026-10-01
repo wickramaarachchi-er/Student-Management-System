@@ -55,7 +55,7 @@ export default function Sidebar({ onItemClick }) {
           >
             <Icon name={item.icon} className="w-4 h-4 flex-shrink-0" />
             <span className="truncate flex-1">{item.label}</span>
-            {!['/dashboard', '/users', '/policies'].includes(item.path) && (
+            {!['/dashboard', '/users', '/policies', '/training', '/training-progress', '/my-progress'].includes(item.path) && (
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/50 font-normal">
                 Soon
               </span>

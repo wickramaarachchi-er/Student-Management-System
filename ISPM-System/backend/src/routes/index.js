@@ -9,6 +9,7 @@ import testRouter   from './test.js';
 
 import userRouter   from './user.js';
 import policyRouter from './policy.js';
+import trainingRouter from './training.js';
 
 const router = Router();
 
@@ -23,6 +24,9 @@ router.use('/users', userRouter);
 
 // Policy Management & Acknowledgements – /api/policies (COMPLIANCE_OFFICER, EMPLOYEE)
 router.use('/policies', policyRouter);
+
+// Training Management & Employee Training Progress – /api/training (TRAINING_ADMIN, EMPLOYEE)
+router.use('/training', trainingRouter);
 
 // DEVELOPMENT ONLY – RBAC verification routes; remove before production
 router.use('/test', testRouter);

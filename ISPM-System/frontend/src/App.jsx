@@ -26,6 +26,9 @@ import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import UsersPage from './pages/UsersPage.jsx';
 import PoliciesPage from './pages/PoliciesPage.jsx';
+import TrainingPage from './pages/TrainingPage.jsx';
+import TrainingProgressPage from './pages/TrainingProgressPage.jsx';
+import MyProgressPage from './pages/MyProgressPage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -103,11 +106,7 @@ export default function App() {
           path="/training"
           element={
             <ProtectedRoute roles={['TRAINING_ADMIN', 'EMPLOYEE']}>
-              <ComingSoonPage
-                title="Security Awareness Training"
-                description="Interactive cybersecurity awareness modules covering phishing, passwords, and data handling."
-                icon="academic-cap"
-              />
+              <TrainingPage />
             </ProtectedRoute>
           }
         />
@@ -129,11 +128,7 @@ export default function App() {
           path="/training-progress"
           element={
             <ProtectedRoute roles={['TRAINING_ADMIN']}>
-              <ComingSoonPage
-                title="Training Progress Oversight"
-                description="Track organization-wide course completions and employee certification milestones."
-                icon="trending-up"
-              />
+              <TrainingProgressPage />
             </ProtectedRoute>
           }
         />
@@ -142,11 +137,7 @@ export default function App() {
           path="/my-progress"
           element={
             <ProtectedRoute roles={['EMPLOYEE']}>
-              <ComingSoonPage
-                title="My Security Progress"
-                description="View your completed training certifications, quiz scores, and signed policies."
-                icon="user-check"
-              />
+              <MyProgressPage />
             </ProtectedRoute>
           }
         />
