@@ -1,0 +1,17 @@
+// ============================================================
+// Prisma Schema – ISPM System
+// Database: MySQL
+// ============================================================
+// NOTE: No models are defined yet. Database schema design
+// will happen in a subsequent development step when modules
+// (users, policies, training, etc.) are implemented.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
