@@ -5,11 +5,13 @@
  */
 import { useState, useEffect } from 'react';
 import { getMyProgressRequest } from '../services/training.service.js';
+import { getMyQuizResultsRequest } from '../services/quiz.service.js';
 import Icon from '../components/common/Icon.jsx';
 import TrainingDetailModal from '../components/training/TrainingDetailModal.jsx';
 
 export default function MyProgressPage() {
   const [data, setData] = useState(null);
+  const [quizResults, setQuizResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedModuleId, setSelectedModuleId] = useState(null);
@@ -18,11 +20,19 @@ export default function MyProgressPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await getMyProgressRequest();
-      if (res.ok && res.data?.success) {
-        setData(res.data.data);
+      const [trainRes, quizRes] = await Promise.all([
+        getMyProgressRequest(),
+        getMyQuizResultsRequest()
+      ]);
+
+      if (trainRes.ok && trainRes.data?.success) {
+        setData(trainRes.data.data);
       } else {
-        setError(res.data?.message || 'Failed to retrieve progress data.');
+        setError(trainRes.data?.message || 'Failed to retrieve progress data.');
+      }
+
+      if (quizRes.ok && quizRes.data?.success) {
+        setQuizResults(quizRes.data.data.results || []);
       }
     } catch {
       setError('A network error occurred while loading your progress.');
@@ -220,6 +230,93 @@ export default function MyProgressPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Quiz & Knowledge Assessment Results */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Icon name="clipboard" className="w-4 h-4 text-indigo-600" />
+            <h2 className="text-sm font-bold text-slate-800">
+              Knowledge Assessments & Quiz Results
+            </h2>
+          </div>
+          <span className="text-xs text-slate-500">
+            {quizResults.length} attempt{quizResults.length !== 1 ? 's' : ''} recorded
+          </span>
+        </div>
+
+        {quizResults.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-xs text-slate-500">
+              No quiz attempts recorded yet. Visit the Quizzes section to complete assessments for your finished training courses.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3.5 px-6">Assessment</th>
+                  <th className="py-3.5 px-6">Associated Training</th>
+                  <th className="py-3.5 px-6">Pass Mark</th>
+                  <th className="py-3.5 px-6">Achieved Score</th>
+                  <th className="py-3.5 px-6">Status</th>
+                  <th className="py-3.5 px-6 text-right">Attempt Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {quizResults.map((result) => {
+                  const quiz = result.quiz;
+                  const isPassed = result.isPassed;
+
+                  return (
+                    <tr key={result.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-4 px-6 font-bold text-slate-800">
+                        {result.quiz?.title || result.quizTitle || 'Knowledge Assessment'}
+                      </td>
+                      <td className="py-4 px-6 text-slate-600">
+                        {result.quiz?.trainingModule?.title || result.trainingModuleTitle || 'General Module'}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="text-slate-600 font-medium">
+                          {result.quiz?.passingScore || result.passingScore || 80}%
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`font-bold text-sm ${
+                            isPassed ? 'text-emerald-700' : 'text-rose-700'
+                          }`}
+                        >
+                          {result.score}%
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        {isPassed ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <Icon name="check" className="w-3.5 h-3.5 mr-1" />
+                            Passed
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                            <Icon name="close" className="w-3.5 h-3.5 mr-1" />
+                            Failed
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-right text-slate-500">
+                        {result.submittedAt
+                          ? new Date(result.submittedAt).toLocaleDateString()
+                          : '—'}
                       </td>
                     </tr>
                   );

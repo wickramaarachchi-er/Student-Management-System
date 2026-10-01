@@ -29,6 +29,7 @@ import PoliciesPage from './pages/PoliciesPage.jsx';
 import TrainingPage from './pages/TrainingPage.jsx';
 import TrainingProgressPage from './pages/TrainingProgressPage.jsx';
 import MyProgressPage from './pages/MyProgressPage.jsx';
+import QuizzesPage from './pages/QuizzesPage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -115,11 +116,7 @@ export default function App() {
           path="/quizzes"
           element={
             <ProtectedRoute roles={['TRAINING_ADMIN', 'EMPLOYEE']}>
-              <ComingSoonPage
-                title="Knowledge Assessments & Quizzes"
-                description="Evaluate cybersecurity knowledge retention with scenario-based security questions."
-                icon="clipboard-list"
-              />
+              <QuizzesPage />
             </ProtectedRoute>
           }
         />

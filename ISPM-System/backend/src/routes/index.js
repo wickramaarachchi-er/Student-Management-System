@@ -10,6 +10,7 @@ import testRouter   from './test.js';
 import userRouter   from './user.js';
 import policyRouter from './policy.js';
 import trainingRouter from './training.js';
+import quizRouter from './quiz.js';
 
 const router = Router();
 
@@ -27,6 +28,9 @@ router.use('/policies', policyRouter);
 
 // Training Management & Employee Training Progress – /api/training (TRAINING_ADMIN, EMPLOYEE)
 router.use('/training', trainingRouter);
+
+// Quiz Management, Questions, and Employee Attempts – /api/quizzes (TRAINING_ADMIN, EMPLOYEE)
+router.use('/quizzes', quizRouter);
 
 // DEVELOPMENT ONLY – RBAC verification routes; remove before production
 router.use('/test', testRouter);
