@@ -1,10 +1,7 @@
 // ============================================================
 // Prisma Schema – ISPM System
-// Database: MySQL
-// ============================================================
-// NOTE: No models are defined yet. Database schema design
-// will happen in a subsequent development step when modules
-// (users, policies, training, etc.) are implemented.
+// Information Security Policy Awareness and Management System
+// Database: MySQL  |  Prisma 5.22.0
 // ============================================================
 
 generator client {
@@ -14,4 +11,364 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  SYSTEM_ADMIN
+  COMPLIANCE_OFFICER
+  TRAINING_ADMIN
+  EMPLOYEE
+}
+
+enum PolicyStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TrainingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationType {
+  POLICY_PUBLISHED
+  POLICY_ACKNOWLEDGEMENT_DUE
+  TRAINING_ASSIGNED
+  TRAINING_DUE
+  QUIZ_PASSED
+  QUIZ_FAILED
+  TICKET_UPDATE
+  SYSTEM
+}
+
+// ============================================================
+// 1. USERS
+// ============================================================
+
+model User {
+  id           String   @id @default(cuid())
+  firstName    String   @db.VarChar(100)
+  lastName     String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  role         Role     @default(EMPLOYEE)
+  department   String?  @db.VarChar(100)
+  phone        String?  @db.VarChar(30)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  createdPolicies        Policy[]                @relation("PolicyCreator")
+  policyAcknowledgements PolicyAcknowledgement[]
+  createdTrainings       TrainingModule[]        @relation("TrainingCreator")
+  trainingProgress       TrainingProgress[]
+  quizAttempts           QuizAttempt[]
+  helpdeskTickets        HelpdeskTicket[]        @relation("TicketCreator")
+  ticketResponses        TicketResponse[]        @relation("TicketResponder")
+  notifications          Notification[]          @relation("NotificationRecipient")
+
+  @@index([role])
+  @@index([department])
+  @@index([isActive])
+  @@map("users")
+}
+
+// ============================================================
+// 2. POLICIES
+// ============================================================
+
+model Policy {
+  id               String       @id @default(cuid())
+  title            String       @db.VarChar(255)
+  description      String?      @db.Text
+  category         String       @db.VarChar(100)
+  status           PolicyStatus @default(DRAFT)
+  targetDepartment String?      @db.VarChar(100)
+  creatorId        String
+  publishedAt      DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  creator          User                    @relation("PolicyCreator", fields: [creatorId], references: [id])
+  versions         PolicyVersion[]
+  acknowledgements PolicyAcknowledgement[]
+
+  @@index([status])
+  @@index([category])
+  @@index([creatorId])
+  @@index([targetDepartment])
+  @@map("policies")
+}
+
+model PolicyVersion {
+  id            String   @id @default(cuid())
+  policyId      String
+  versionNumber Int
+  content       String   @db.LongText
+  changedBy     String   @db.VarChar(255)
+  createdAt     DateTime @default(now())
+
+  policy           Policy                  @relation(fields: [policyId], references: [id])
+  acknowledgements PolicyAcknowledgement[]
+
+  @@unique([policyId, versionNumber])
+  @@index([policyId])
+  @@map("policy_versions")
+}
+
+model PolicyAcknowledgement {
+  id              String   @id @default(cuid())
+  userId          String
+  policyId        String
+  policyVersionId String
+  acknowledgedAt  DateTime @default(now())
+
+  user          User          @relation(fields: [userId], references: [id])
+  policy        Policy        @relation(fields: [policyId], references: [id])
+  policyVersion PolicyVersion @relation(fields: [policyVersionId], references: [id])
+
+  @@unique([userId, policyVersionId])
+  @@index([userId])
+  @@index([policyId])
+  @@index([policyVersionId])
+  @@map("policy_acknowledgements")
+}
+
+// ============================================================
+// 3. TRAINING
+// ============================================================
+
+model TrainingModule {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  content     String?  @db.LongText
+  resourceUrl String?  @db.VarChar(500)
+  creatorId   String
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator  User               @relation("TrainingCreator", fields: [creatorId], references: [id])
+  progress TrainingProgress[]
+  quiz     Quiz?
+
+  @@index([creatorId])
+  @@index([isPublished])
+  @@map("training_modules")
+}
+
+model TrainingProgress {
+  id               String         @id @default(cuid())
+  userId           String
+  trainingModuleId String
+  status           TrainingStatus @default(NOT_STARTED)
+  progressPercent  Int            @default(0)
+  assignedAt       DateTime       @default(now())
+  dueDate          DateTime?
+  completedAt      DateTime?
+
+  user           User           @relation(fields: [userId], references: [id])
+  trainingModule TrainingModule @relation(fields: [trainingModuleId], references: [id])
+
+  @@unique([userId, trainingModuleId])
+  @@index([userId])
+  @@index([trainingModuleId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("training_progress")
+}
+
+// ============================================================
+// 4. QUIZZES
+// ============================================================
+
+model Quiz {
+  id               String   @id @default(cuid())
+  trainingModuleId String   @unique
+  title            String   @db.VarChar(255)
+  description      String?  @db.Text
+  passingScore     Int      @default(70)
+  maxAttempts      Int      @default(3)
+  timeLimitMinutes Int?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  trainingModule TrainingModule @relation(fields: [trainingModuleId], references: [id])
+  questions      QuizQuestion[]
+  attempts       QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id           String @id @default(cuid())
+  quizId       String
+  questionText String @db.Text
+  orderIndex   Int    @default(0)
+  points       Int    @default(1)
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id])
+  options QuizOption[]
+  answers QuizAnswer[]
+
+  @@index([quizId])
+  @@map("quiz_questions")
+}
+
+model QuizOption {
+  id         String  @id @default(cuid())
+  questionId String
+  optionText String  @db.Text
+  isCorrect  Boolean @default(false)
+  orderIndex Int     @default(0)
+
+  question QuizQuestion @relation(fields: [questionId], references: [id])
+  answers  QuizAnswer[]
+
+  @@index([questionId])
+  @@map("quiz_options")
+}
+
+model QuizAttempt {
+  id            String   @id @default(cuid())
+  quizId        String
+  userId        String
+  attemptNumber Int
+  score         Float    @default(0)
+  isPassed      Boolean  @default(false)
+  submittedAt   DateTime @default(now())
+
+  quiz    Quiz         @relation(fields: [quizId], references: [id])
+  user    User         @relation(fields: [userId], references: [id])
+  answers QuizAnswer[]
+
+  @@index([quizId])
+  @@index([userId])
+  @@index([quizId, userId])
+  @@map("quiz_attempts")
+}
+
+model QuizAnswer {
+  id               String @id @default(cuid())
+  attemptId        String
+  questionId       String
+  selectedOptionId String
+
+  attempt        QuizAttempt  @relation(fields: [attemptId], references: [id])
+  question       QuizQuestion @relation(fields: [questionId], references: [id])
+  selectedOption QuizOption   @relation(fields: [selectedOptionId], references: [id])
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@index([questionId])
+  @@map("quiz_answers")
+}
+
+// ============================================================
+// 5. HELPDESK
+// ============================================================
+
+model HelpdeskTicket {
+  id          String         @id @default(cuid())
+  creatorId   String
+  subject     String         @db.VarChar(255)
+  description String         @db.Text
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  creator   User             @relation("TicketCreator", fields: [creatorId], references: [id])
+  responses TicketResponse[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([priority])
+  @@map("helpdesk_tickets")
+}
+
+model TicketResponse {
+  id           String   @id @default(cuid())
+  ticketId     String
+  responderId  String
+  responseText String   @db.Text
+  createdAt    DateTime @default(now())
+
+  ticket    HelpdeskTicket @relation(fields: [ticketId], references: [id])
+  responder User           @relation("TicketResponder", fields: [responderId], references: [id])
+
+  @@index([ticketId])
+  @@index([responderId])
+  @@map("ticket_responses")
+}
+
+// ============================================================
+// 6. NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  title       String           @db.VarChar(255)
+  message     String           @db.Text
+  type        NotificationType @default(SYSTEM)
+  resourceRef String?          @db.VarChar(255)
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  readAt      DateTime?
+
+  recipient User @relation("NotificationRecipient", fields: [recipientId], references: [id])
+
+  @@index([recipientId])
+  @@index([recipientId, isRead])
+  @@index([type])
+  @@map("notifications")
+}
+
+// ============================================================
+// 7. AUDIT LOGS
+// ============================================================
+// userId is nullable – supports pre-auth events (e.g. failed logins).
+// No FK to users table so logs survive user deletion.
+// ============================================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  userEmail   String?  @db.VarChar(255)
+  action      String   @db.VarChar(100)
+  entityType  String?  @db.VarChar(100)
+  entityId    String?  @db.VarChar(100)
+  description String?  @db.Text
+  ipAddress   String?  @db.VarChar(45)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
