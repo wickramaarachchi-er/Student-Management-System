@@ -1,6 +1,6 @@
 /**
  * pages/HelpdeskPage.jsx
- * Functional Security Helpdesk & Support Query module for Employees and System Admins.
+ * Security Helpdesk & Support Query module for Employees and System Admins.
  */
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
@@ -12,6 +12,29 @@ import {
   updateTicketStatusRequest,
 } from '../services/helpdesk.service.js';
 import Icon from '../components/common/Icon.jsx';
+import PageHeader from '../components/common/PageHeader.jsx';
+import StatusBadge from '../components/common/StatusBadge.jsx';
+import LoadingState from '../components/common/LoadingState.jsx';
+import ErrorState from '../components/common/ErrorState.jsx';
+import EmptyState from '../components/common/EmptyState.jsx';
+
+const PRIORITY_STYLES = {
+  CRITICAL: 'bg-rose-500/10 text-rose-300 border-rose-500/30',
+  HIGH:     'bg-orange-500/10 text-orange-300 border-orange-500/30',
+  MEDIUM:   'bg-blue-500/10 text-blue-300 border-blue-500/30',
+  LOW:      'bg-slate-700/60 text-slate-300 border-slate-700/40',
+};
+
+const INPUT_CLASS = 'px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500';
+
+function PriorityBadge({ priority }) {
+  const cls = PRIORITY_STYLES[priority] || PRIORITY_STYLES.LOW;
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-bold uppercase tracking-wide ${cls}`}>
+      {priority}
+    </span>
+  );
+}
 
 export default function HelpdeskPage() {
   const { user } = useAuth();
@@ -20,13 +43,10 @@ export default function HelpdeskPage() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
 
-  // Create Ticket Modal (Employee)
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createSubject, setCreateSubject] = useState('');
   const [createDescription, setCreateDescription] = useState('');
@@ -34,7 +54,6 @@ export default function HelpdeskPage() {
   const [createError, setCreateError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Ticket Details Modal
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [ticketDetails, setTicketDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -47,12 +66,7 @@ export default function HelpdeskPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await getTicketsRequest({
-        status: statusFilter,
-        priority: priorityFilter,
-        search,
-      });
-
+      const res = await getTicketsRequest({ status: statusFilter, priority: priorityFilter, search });
       if (res.ok && res.data?.success) {
         setTickets(res.data.data.tickets || []);
       } else {
@@ -65,9 +79,7 @@ export default function HelpdeskPage() {
     }
   };
 
-  useEffect(() => {
-    fetchTickets();
-  }, [search, statusFilter, priorityFilter]);
+  useEffect(() => { fetchTickets(); }, [search, statusFilter, priorityFilter]);
 
   const handleOpenDetails = async (id) => {
     setSelectedTicketId(id);
@@ -76,13 +88,9 @@ export default function HelpdeskPage() {
     setResponseError('');
     try {
       const res = await getTicketDetailsRequest(id);
-      if (res.ok && res.data?.success) {
-        setTicketDetails(res.data.data.ticket);
-      } else {
-        setError(res.data?.message || 'Failed to retrieve ticket details.');
-      }
+      if (res.ok && res.data?.success) setTicketDetails(res.data.data.ticket);
     } catch {
-      setError('Error loading ticket conversation details.');
+      // silently fail
     } finally {
       setLoadingDetails(false);
     }
@@ -95,7 +103,6 @@ export default function HelpdeskPage() {
       setCreateError('Please provide both a subject and description.');
       return;
     }
-
     setSubmitting(true);
     try {
       const res = await createTicketRequest({
@@ -103,7 +110,6 @@ export default function HelpdeskPage() {
         description: createDescription.trim(),
         priority: createPriority,
       });
-
       if (res.ok && res.data?.success) {
         setShowCreateModal(false);
         setCreateSubject('');
@@ -123,21 +129,14 @@ export default function HelpdeskPage() {
   const handleSendResponse = async (e) => {
     e.preventDefault();
     setResponseError('');
-    if (!responseText.trim()) {
-      setResponseError('Response message cannot be empty.');
-      return;
-    }
-
+    if (!responseText.trim()) { setResponseError('Response message cannot be empty.'); return; }
     setSendingResponse(true);
     try {
       const res = await addTicketResponseRequest(selectedTicketId, responseText.trim());
       if (res.ok && res.data?.success) {
         setResponseText('');
-        // Refresh ticket conversation
         const detailsRes = await getTicketDetailsRequest(selectedTicketId);
-        if (detailsRes.ok && detailsRes.data?.success) {
-          setTicketDetails(detailsRes.data.data.ticket);
-        }
+        if (detailsRes.ok && detailsRes.data?.success) setTicketDetails(detailsRes.data.data.ticket);
         fetchTickets();
       } else {
         setResponseError(res.data?.message || 'Failed to post response.');
@@ -158,103 +157,60 @@ export default function HelpdeskPage() {
         setTicketDetails((prev) => (prev ? { ...prev, status: newStatus } : null));
         fetchTickets();
       }
-    } catch (err) {
-      console.error('Failed to update status:', err);
+    } catch {
+      // silently fail
     } finally {
       setUpdatingStatus(false);
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'OPEN':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 border border-sky-300">OPEN</span>;
-      case 'IN_PROGRESS':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">IN PROGRESS</span>;
-      case 'RESOLVED':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">RESOLVED</span>;
-      case 'CLOSED':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300">CLOSED</span>;
-      default:
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">{status}</span>;
-    }
-  };
-
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case 'CRITICAL':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">CRITICAL</span>;
-      case 'HIGH':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-300">HIGH</span>;
-      case 'MEDIUM':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">MEDIUM</span>;
-      default:
-        return <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">LOW</span>;
-    }
-  };
+  const MODAL_INPUT = 'w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
-            <Icon name="helpdesk" className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Security Helpdesk & Support Queries</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isAdmin
-                ? 'Manage security inquiries, respond to support requests, and update ticket statuses'
-                : 'Submit security inquiries or policy clarification requests directly to System Administrators'}
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        title="Security Helpdesk & Support"
+        description={
+          isAdmin
+            ? 'Manage security inquiries, respond to support requests, and update ticket workflow statuses.'
+            : 'Submit security inquiries or policy clarification requests directly to System Administrators.'
+        }
+        icon="helpdesk"
+        action={
+          !isAdmin ? (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-950 cursor-pointer"
+            >
+              <Icon name="plus" className="w-4 h-4" />
+              <span>Submit Security Query</span>
+            </button>
+          ) : null
+        }
+      />
 
-        {!isAdmin && (
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all shadow-xs flex items-center space-x-2 flex-shrink-0"
-          >
-            <Icon name="plus" className="w-4 h-4" />
-            <span>Submit Security Query</span>
-          </button>
-        )}
-      </div>
-
-      {/* Filter Bar & Table Container */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-sm font-bold text-slate-800">
+      {/* Filter Bar + Table */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
             {isAdmin ? 'All Support Tickets' : 'My Support Tickets'}
           </h2>
-
           <div className="flex flex-wrap items-center gap-3">
             <input
               type="text"
-              placeholder="Search subject or description..."
+              placeholder="Search subject or description…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:outline-none w-56"
+              className={`${INPUT_CLASS} w-52`}
             />
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:outline-none"
-            >
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={INPUT_CLASS}>
               <option value="">All Statuses</option>
               <option value="OPEN">Open</option>
               <option value="IN_PROGRESS">In Progress</option>
               <option value="RESOLVED">Resolved</option>
               <option value="CLOSED">Closed</option>
             </select>
-
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:outline-none"
-            >
+            <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className={INPUT_CLASS}>
               <option value="">All Priorities</option>
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
@@ -264,69 +220,51 @@ export default function HelpdeskPage() {
           </div>
         </div>
 
-        {/* Tickets Roster Table */}
         {loading ? (
-          <div className="p-16 flex flex-col items-center justify-center text-slate-400 space-y-3">
-            <Icon name="refresh" className="w-8 h-8 animate-spin text-indigo-500" />
-            <p className="text-sm font-medium">Loading tickets...</p>
-          </div>
+          <div className="p-6"><LoadingState message="Loading helpdesk tickets…" /></div>
         ) : error ? (
-          <div className="p-6">
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700">
-              {error}
-            </div>
-          </div>
+          <div className="p-6"><ErrorState message={error} onRetry={fetchTickets} /></div>
         ) : tickets.length === 0 ? (
-          <div className="p-16 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto mb-3">
-              <Icon name="helpdesk" className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-slate-700">No support tickets found</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              {isAdmin
-                ? 'No user support tickets match the current filter criteria.'
-                : 'You have not submitted any helpdesk queries yet.'}
-            </p>
+          <div className="p-6">
+            <EmptyState
+              title="No support tickets found"
+              description={isAdmin ? 'No user support tickets match the current filter criteria.' : 'You have not submitted any helpdesk queries yet.'}
+              icon="helpdesk"
+            />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-6">Ticket Subject & Details</th>
-                  {isAdmin && <th className="py-3.5 px-6">Submitted By</th>}
-                  <th className="py-3.5 px-6 text-center">Priority</th>
-                  <th className="py-3.5 px-6 text-center">Status</th>
-                  <th className="py-3.5 px-6 text-right">Created Date</th>
-                  <th className="py-3.5 px-6 text-right">Action</th>
+                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3.5 px-5">Ticket Subject & Details</th>
+                  {isAdmin && <th className="py-3.5 px-5">Submitted By</th>}
+                  <th className="py-3.5 px-5">Priority</th>
+                  <th className="py-3.5 px-5">Status</th>
+                  <th className="py-3.5 px-5 text-right">Date</th>
+                  <th className="py-3.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-800/70 text-xs">
                 {tickets.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-4 px-6 max-w-md">
-                      <div className="font-bold text-slate-800 text-sm">{t.subject}</div>
-                      <p className="text-slate-500 text-xs line-clamp-1 mt-0.5">{t.description}</p>
+                  <tr key={t.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-4 px-5 max-w-md">
+                      <div className="font-bold text-slate-100 text-sm">{t.subject}</div>
+                      <p className="text-slate-400 text-xs line-clamp-1 mt-0.5">{t.description}</p>
                     </td>
-
                     {isAdmin && (
-                      <td className="py-4 px-6">
-                        <div className="font-bold text-slate-800">
-                          {t.creator?.firstName} {t.creator?.lastName}
-                        </div>
-                        <div className="text-[11px] text-slate-400">{t.creator?.email} ({t.creator?.department || 'General'})</div>
+                      <td className="py-4 px-5">
+                        <div className="font-bold text-slate-100">{t.creator?.firstName} {t.creator?.lastName}</div>
+                        <div className="text-[11px] text-slate-400">{t.creator?.email} · {t.creator?.department || 'General'}</div>
                       </td>
                     )}
-
-                    <td className="py-4 px-6 text-center">{getPriorityBadge(t.priority)}</td>
-                    <td className="py-4 px-6 text-center">{getStatusBadge(t.status)}</td>
-                    <td className="py-4 px-6 text-right text-slate-500">
-                      {new Date(t.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 px-5"><PriorityBadge priority={t.priority} /></td>
+                    <td className="py-4 px-5"><StatusBadge status={t.status} /></td>
+                    <td className="py-4 px-5 text-right text-slate-400">{new Date(t.createdAt).toLocaleDateString()}</td>
+                    <td className="py-4 px-5 text-right">
                       <button
                         onClick={() => handleOpenDetails(t.id)}
-                        className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition-all inline-flex items-center space-x-1"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 hover:border-blue-500 text-xs font-bold transition-all cursor-pointer"
                       >
                         <Icon name="chat" className="w-3.5 h-3.5" />
                         <span>View ({t._count?.responses ?? 0})</span>
@@ -340,79 +278,67 @@ export default function HelpdeskPage() {
         )}
       </div>
 
-      {/* Create Ticket Modal (Employee) */}
+      {/* Create Ticket Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-800">Submit Security Support Ticket</h3>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-slate-100">Submit Security Support Ticket</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-200 p-1 rounded-lg cursor-pointer">
                 <Icon name="close" className="w-5 h-5" />
               </button>
             </div>
 
             {createError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
-                {createError}
-              </div>
+              <div className="p-3 bg-rose-950/50 border border-rose-800/60 rounded-xl text-xs text-rose-300">{createError}</div>
             )}
 
             <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Subject / Inquiry Title</label>
+                <label className="block font-bold text-slate-300 mb-1.5">Subject / Inquiry Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Phishing Email Verification or Policy Clarification"
                   value={createSubject}
                   onChange={(e) => setCreateSubject(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                  className={MODAL_INPUT}
                 />
               </div>
-
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Priority Level</label>
-                <select
-                  value={createPriority}
-                  onChange={(e) => setCreatePriority(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-                >
+                <label className="block font-bold text-slate-300 mb-1.5">Priority Level</label>
+                <select value={createPriority} onChange={(e) => setCreatePriority(e.target.value)} className={MODAL_INPUT}>
                   <option value="LOW">Low – General Query</option>
                   <option value="MEDIUM">Medium – Policy Clarification</option>
                   <option value="HIGH">High – Suspicious Activity / Phishing</option>
                   <option value="CRITICAL">Critical – System Security Incident</option>
                 </select>
               </div>
-
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Detailed Description</label>
+                <label className="block font-bold text-slate-300 mb-1.5">Detailed Description</label>
                 <textarea
                   required
                   rows={4}
-                  placeholder="Describe your security query, issue details, or observation..."
+                  placeholder="Describe your security query, issue details, or observation…"
                   value={createDescription}
                   onChange={(e) => setCreateDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-                ></textarea>
+                  className={MODAL_INPUT + ' resize-none'}
+                />
               </div>
-
-              <div className="flex justify-end space-x-3 pt-2">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl disabled:opacity-50"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs disabled:opacity-50 cursor-pointer"
                 >
-                  {submitting ? 'Submitting...' : 'Submit Ticket'}
+                  {submitting ? 'Submitting…' : 'Submit Ticket'}
                 </button>
               </div>
             </form>
@@ -420,102 +346,87 @@ export default function HelpdeskPage() {
         </div>
       )}
 
-      {/* Ticket Details & Conversation Drawer/Modal */}
+      {/* Ticket Details Modal */}
       {selectedTicketId && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh] gap-4">
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-base font-bold text-slate-800">
-                    {ticketDetails?.subject || 'Ticket Details'}
-                  </h3>
-                  {ticketDetails && getStatusBadge(ticketDetails.status)}
-                  {ticketDetails && getPriorityBadge(ticketDetails.priority)}
+            <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-bold text-slate-100">{ticketDetails?.subject || 'Ticket Details'}</h3>
+                  {ticketDetails && <StatusBadge status={ticketDetails.status} />}
+                  {ticketDetails && <PriorityBadge priority={ticketDetails.priority} />}
                 </div>
                 {ticketDetails?.creator && (
-                  <p className="text-xs text-slate-500 mt-1">
-                    Submitted by <b>{ticketDetails.creator.firstName} {ticketDetails.creator.lastName}</b> ({ticketDetails.creator.email}) on {new Date(ticketDetails.createdAt).toLocaleString()}
+                  <p className="text-xs text-slate-400">
+                    Submitted by <b className="text-slate-300">{ticketDetails.creator.firstName} {ticketDetails.creator.lastName}</b> ({ticketDetails.creator.email}) on {new Date(ticketDetails.createdAt).toLocaleString()}
                   </p>
                 )}
               </div>
               <button
-                onClick={() => {
-                  setSelectedTicketId(null);
-                  setTicketDetails(null);
-                }}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                onClick={() => { setSelectedTicketId(null); setTicketDetails(null); }}
+                className="text-slate-400 hover:text-slate-200 p-1 rounded-lg cursor-pointer"
               >
                 <Icon name="close" className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Admin Status Update Dropdown */}
+            {/* Admin Status Update */}
             {isAdmin && ticketDetails && (
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-700">Update Workflow Status:</span>
+              <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-300">Update Ticket Status:</span>
                 <select
                   disabled={updatingStatus}
                   value={ticketDetails.status}
                   onChange={(e) => handleStatusChange(e.target.value)}
-                  className="px-3 py-1 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 focus:outline-none"
+                  className="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 text-xs font-bold focus:outline-none focus:border-blue-500"
                 >
-                  <option value="OPEN">OPEN</option>
-                  <option value="IN_PROGRESS">IN_PROGRESS</option>
-                  <option value="RESOLVED">RESOLVED</option>
-                  <option value="CLOSED">CLOSED</option>
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CLOSED">Closed</option>
                 </select>
               </div>
             )}
 
-            {/* Conversation Log */}
-            <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+            {/* Conversation */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs">
               {loadingDetails ? (
-                <div className="p-8 flex items-center justify-center text-slate-400">
-                  <Icon name="refresh" className="w-6 h-6 animate-spin text-indigo-500 mr-2" />
-                  <span>Loading message thread...</span>
-                </div>
+                <div className="p-6"><LoadingState message="Loading message thread…" /></div>
               ) : ticketDetails ? (
                 <>
-                  {/* Original Inquiry */}
-                  <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-4 space-y-1">
-                    <div className="flex justify-between font-bold text-indigo-950">
-                      <span>Initial Inquiry by {ticketDetails.creator?.firstName} {ticketDetails.creator?.lastName}</span>
-                      <span className="text-[11px] text-indigo-600 font-normal">{new Date(ticketDetails.createdAt).toLocaleString()}</span>
+                  {/* Original inquiry */}
+                  <div className="bg-blue-950/30 border border-blue-800/50 rounded-xl p-4 space-y-1">
+                    <div className="flex justify-between font-bold text-blue-200 text-[11px]">
+                      <span>Initial Inquiry — {ticketDetails.creator?.firstName} {ticketDetails.creator?.lastName}</span>
+                      <span className="text-blue-300/70 font-normal">{new Date(ticketDetails.createdAt).toLocaleString()}</span>
                     </div>
-                    <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{ticketDetails.description}</p>
+                    <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">{ticketDetails.description}</p>
                   </div>
 
-                  {/* Responses */}
                   {ticketDetails.responses?.length === 0 ? (
-                    <div className="text-center py-4 text-slate-400 text-xs italic">
-                      No responses posted yet.
-                    </div>
+                    <div className="text-center py-4 text-slate-500 text-xs italic">No responses posted yet.</div>
                   ) : (
                     ticketDetails.responses.map((resp) => {
-                      const isSelf = resp.responderId === user.id;
                       const isResponderAdmin = resp.responder?.role === 'SYSTEM_ADMIN';
-
                       return (
                         <div
                           key={resp.id}
                           className={`p-4 rounded-xl border space-y-1 ${
                             isResponderAdmin
-                              ? 'bg-slate-900 text-white border-slate-800 ml-6'
-                              : 'bg-slate-50 text-slate-800 border-slate-200 mr-6'
+                              ? 'bg-slate-950/70 text-slate-100 border-slate-700 ml-6'
+                              : 'bg-slate-800/40 text-slate-200 border-slate-700/60 mr-6'
                           }`}
                         >
                           <div className="flex justify-between items-center text-[11px]">
-                            <span className="font-bold flex items-center space-x-1.5">
+                            <span className="font-bold flex items-center gap-1.5">
                               <span>{resp.responder?.firstName} {resp.responder?.lastName}</span>
-                              <span className={`px-1.5 py-0.2 rounded text-[10px] uppercase font-mono ${isResponderAdmin ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-700'}`}>
-                                {resp.responder?.role}
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-mono ${isResponderAdmin ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300'}`}>
+                                {isResponderAdmin ? 'Admin' : 'User'}
                               </span>
                             </span>
-                            <span className={isResponderAdmin ? 'text-slate-400' : 'text-slate-500'}>
-                              {new Date(resp.createdAt).toLocaleString()}
-                            </span>
+                            <span className="text-slate-400">{new Date(resp.createdAt).toLocaleString()}</span>
                           </div>
                           <p className="leading-relaxed whitespace-pre-wrap">{resp.responseText}</p>
                         </div>
@@ -527,28 +438,26 @@ export default function HelpdeskPage() {
             </div>
 
             {/* Reply Box */}
-            <form onSubmit={handleSendResponse} className="border-t border-slate-100 pt-3 space-y-2">
+            <form onSubmit={handleSendResponse} className="border-t border-slate-800 pt-3 space-y-2">
               {responseError && (
-                <div className="p-2 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700">
-                  {responseError}
-                </div>
+                <div className="p-2 bg-rose-950/50 border border-rose-800/60 rounded-lg text-xs text-rose-300">{responseError}</div>
               )}
               <div className="flex gap-2">
                 <input
                   type="text"
                   required
-                  placeholder={isAdmin ? "Type administrator response..." : "Type follow-up response..."}
+                  placeholder={isAdmin ? 'Type administrator response…' : 'Type follow-up response…'}
                   value={responseText}
                   onChange={(e) => setResponseText(e.target.value)}
-                  className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                  className="flex-1 px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
                 />
                 <button
                   type="submit"
                   disabled={sendingResponse}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center space-x-1"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
                 >
                   <Icon name="send" className="w-3.5 h-3.5" />
-                  <span>{sendingResponse ? 'Sending...' : 'Reply'}</span>
+                  <span>{sendingResponse ? 'Sending…' : 'Reply'}</span>
                 </button>
               </div>
             </form>

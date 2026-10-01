@@ -1,13 +1,16 @@
 /**
  * pages/QuizzesPage.jsx
- * Unified Knowledge Assessments & Quizzes page with role-specific views for:
- * - TRAINING_ADMIN: Quiz configuration, question authoring, thresholds, and attempt reporting.
- * - EMPLOYEE: Available assessment catalog, training prerequisite status, quiz taking interface, and immediate feedback.
+ * Unified Knowledge Assessments & Quizzes page with role-specific views.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 import { listQuizzesRequest } from '../services/quiz.service.js';
 import Icon from '../components/common/Icon.jsx';
+import PageHeader from '../components/common/PageHeader.jsx';
+import StatusBadge from '../components/common/StatusBadge.jsx';
+import LoadingState from '../components/common/LoadingState.jsx';
+import ErrorState from '../components/common/ErrorState.jsx';
+import EmptyState from '../components/common/EmptyState.jsx';
 
 import CreateQuizModal from '../components/quizzes/CreateQuizModal.jsx';
 import EditQuizModal from '../components/quizzes/EditQuizModal.jsx';
@@ -79,174 +82,137 @@ export default function QuizzesPage() {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-xs">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
-            <Icon name="clipboard" className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">
-              {isTrainingAdmin ? 'Quiz & Knowledge Assessment Management' : 'Policy & Security Knowledge Quizzes'}
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isTrainingAdmin
-                ? 'Create assessments linked to training modules, configure passing thresholds, author questions, and review employee attempt scores'
-                : 'Validate your understanding of cybersecurity practices and training materials through interactive quizzes'}
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        title={isTrainingAdmin ? 'Quiz & Knowledge Assessment Management' : 'Policy & Security Knowledge Quizzes'}
+        description={
+          isTrainingAdmin
+            ? 'Create assessments linked to training modules, configure passing thresholds, author questions, and review employee attempt scores.'
+            : 'Validate your understanding of cybersecurity practices and training materials through interactive quizzes.'
+        }
+        icon="clipboard"
+        action={
+          isTrainingAdmin ? (
+            <button
+              id="add-quiz-btn"
+              onClick={() => setIsCreateOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-950 cursor-pointer"
+            >
+              <Icon name="plus" className="w-4 h-4" />
+              <span>Create New Quiz</span>
+            </button>
+          ) : null
+        }
+      />
 
-        {isTrainingAdmin && (
-          <button
-            id="add-quiz-btn"
-            onClick={() => setIsCreateOpen(true)}
-            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-indigo-600/20 transition-all flex items-center space-x-2 self-start sm:self-auto"
-          >
-            <Icon name="plus" className="w-4 h-4" />
-            <span>Create New Quiz</span>
-          </button>
-        )}
-      </div>
-
-      {/* Filter / Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="relative flex-1">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Icon name="search" className="w-4 h-4" />
-          </span>
+      {/* Search Bar */}
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+        <div className="relative">
+          <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search quizzes by title or keywords..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            placeholder="Search quizzes by title or keywords…"
+            className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
       </div>
 
       {/* Main Content View */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-100 p-16 flex flex-col items-center justify-center text-slate-400 space-y-3">
-          <Icon name="refresh" className="w-8 h-8 animate-spin text-indigo-500" />
-          <p className="text-sm font-medium">Loading assessments...</p>
-        </div>
+        <LoadingState message="Loading assessments…" rows={4} />
       ) : error ? (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700">
-          {error}
-        </div>
+        <ErrorState message={error} onRetry={fetchQuizzes} />
       ) : quizzes.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto mb-3">
-            <Icon name="clipboard" className="w-6 h-6" />
-          </div>
-          <h3 className="text-base font-bold text-slate-700">No quizzes found</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            {isTrainingAdmin
+        <EmptyState
+          title="No quizzes found"
+          description={
+            isTrainingAdmin
               ? 'Click "Create New Quiz" to link an assessment to one of your training modules.'
-              : 'There are no active security knowledge quizzes available at this time.'}
-          </p>
-        </div>
+              : 'There are no active security knowledge quizzes available at this time.'
+          }
+          icon="clipboard"
+        />
       ) : isTrainingAdmin ? (
         /* ================= TRAINING ADMIN TABLE VIEW ================= */
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-6">Quiz / Title</th>
-                  <th className="py-3.5 px-6">Training Module</th>
-                  <th className="py-3.5 px-6">Pass Mark</th>
-                  <th className="py-3.5 px-6">Questions</th>
-                  <th className="py-3.5 px-6">Module Status</th>
-                  <th className="py-3.5 px-6">Attempts</th>
-                  <th className="py-3.5 px-6 text-right">Actions</th>
+                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3.5 px-5">Quiz / Title</th>
+                  <th className="py-3.5 px-5">Training Module</th>
+                  <th className="py-3.5 px-5">Pass Mark</th>
+                  <th className="py-3.5 px-5">Questions</th>
+                  <th className="py-3.5 px-5">Module Status</th>
+                  <th className="py-3.5 px-5">Attempts</th>
+                  <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-800/70 text-xs">
                 {quizzes.map((quiz) => (
-                  <tr key={quiz.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-4 px-6 max-w-xs">
-                      <div className="font-bold text-slate-800 text-sm">{quiz.title}</div>
-                      <p className="text-slate-500 text-xs line-clamp-1 mt-0.5">
+                  <tr key={quiz.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-4 px-5 max-w-xs">
+                      <div className="font-bold text-slate-100 text-sm">{quiz.title}</div>
+                      <p className="text-slate-400 text-xs line-clamp-1 mt-0.5">
                         {quiz.description || 'No instructions provided.'}
                       </p>
                     </td>
-
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-5">
                       {quiz.trainingModule ? (
-                        <div className="font-medium text-slate-700 flex items-center space-x-1.5">
-                          <Icon name="academic-cap" className="w-4 h-4 text-indigo-500" />
-                          <span>{quiz.trainingModule.title}</span>
+                        <div className="font-medium text-slate-200 flex items-center gap-1.5">
+                          <Icon name="academic-cap" className="w-4 h-4 text-blue-400" />
+                          <span className="line-clamp-1">{quiz.trainingModule.title}</span>
                         </div>
                       ) : (
-                        <span className="text-slate-400 italic">None</span>
+                        <span className="text-slate-500 italic">None</span>
                       )}
                     </td>
-
-                    <td className="py-4 px-6">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <td className="py-4 px-5">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-blue-600/15 text-blue-300 border border-blue-500/20">
                         {quiz.passingScore}%
                       </span>
                     </td>
-
-                    <td className="py-4 px-6">
-                      <span className="font-semibold text-slate-700">
+                    <td className="py-4 px-5">
+                      <span className="font-semibold text-slate-200">
                         {quiz.questionCount || 0} questions
                       </span>
                     </td>
-
-                    <td className="py-4 px-6">
-                      {quiz.trainingModule?.isPublished ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                          Published
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>
-                          Module Draft
-                        </span>
-                      )}
+                    <td className="py-4 px-5">
+                      <StatusBadge status={quiz.trainingModule?.isPublished ? 'PUBLISHED' : 'DRAFT'} />
                     </td>
-
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-slate-700">
-                          {quiz.attemptCount || 0}
-                        </span>
+                    <td className="py-4 px-5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-200">{quiz.attemptCount || 0}</span>
                         <button
                           onClick={() => setReportQuiz(quiz)}
-                          className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline text-[11px]"
+                          className="text-blue-400 hover:text-blue-300 font-semibold hover:underline text-[11px] cursor-pointer"
                         >
                           View Results →
                         </button>
                       </div>
                     </td>
-
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end space-x-2">
+                    <td className="py-4 px-5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           id={`manage-questions-${quiz.id}`}
                           onClick={() => setQuestionsQuiz(quiz)}
-                          className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors flex items-center space-x-1"
+                          className="px-2.5 py-1.5 rounded-lg bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 hover:border-blue-500 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                           title="Manage Questions & Options"
                         >
                           <Icon name="clipboard" className="w-3.5 h-3.5" />
                           <span>Questions</span>
                         </button>
-
                         <button
                           onClick={() => setEditingQuiz(quiz)}
-                          className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
                           title="Edit Settings"
                         >
                           <Icon name="pencil" className="w-3.5 h-3.5" />
                         </button>
-
                         <button
                           onClick={() => setReportQuiz(quiz)}
-                          className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
                           title="View Attempt Report"
                         >
                           <Icon name="chart" className="w-3.5 h-3.5" />
@@ -267,87 +233,72 @@ export default function QuizzesPage() {
             const latestAttempt = quiz.latestAttempt;
             const hasPassed = Boolean(quiz.isPassed ?? latestAttempt?.isPassed);
             const canAttempt = Boolean(quiz.canAttempt ?? (hasCompletedTraining && quiz.questionCount > 0));
+            const accentColor = hasPassed ? 'bg-emerald-500' : !hasCompletedTraining ? 'bg-slate-600' : latestAttempt ? 'bg-rose-500' : 'bg-blue-500';
 
             return (
               <div
                 key={quiz.id}
                 data-quiz-card={quiz.id}
-                className="bg-white rounded-2xl border border-slate-100 shadow-xs hover:shadow-md transition-all flex flex-col overflow-hidden"
+                className="bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:shadow-md transition-all flex flex-col overflow-hidden"
               >
-                {/* Top Accent Strip */}
-                <div
-                  className={`h-1.5 w-full ${
-                    hasPassed
-                      ? 'bg-emerald-500'
-                      : !hasCompletedTraining
-                      ? 'bg-slate-300'
-                      : latestAttempt
-                      ? 'bg-rose-500'
-                      : 'bg-indigo-500'
-                  }`}
-                />
+                <div className={`h-1.5 w-full ${accentColor}`} />
 
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div>
                     {/* Status & Prerequisite Badges */}
                     <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                       {hasPassed ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                           <Icon name="check" className="w-3 h-3 mr-1" />
                           Passed ({latestAttempt?.score}%)
                         </span>
                       ) : latestAttempt ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">
                           <Icon name="close" className="w-3 h-3 mr-1" />
                           Failed ({latestAttempt.score}%)
                         </span>
                       ) : hasCompletedTraining ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1.5"></span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mr-1.5"></span>
                           Ready to Attempt
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                           <Icon name="lock" className="w-3 h-3 mr-1" />
                           Training Required
                         </span>
                       )}
-
                       <span className="inline-flex items-center text-[11px] font-medium text-slate-500">
-                        Pass Mark: <strong className="ml-1 text-slate-700">{quiz.passingScore}%</strong>
+                        Pass Mark: <strong className="ml-1 text-slate-300">{quiz.passingScore}%</strong>
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-slate-800 line-clamp-2">
-                      {quiz.title}
-                    </h3>
+                    <h3 className="text-base font-bold text-slate-100 line-clamp-2">{quiz.title}</h3>
 
                     {quiz.trainingModule && (
-                      <div className="mt-1 flex items-center space-x-1.5 text-xs text-indigo-600 font-medium">
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-blue-400 font-medium">
                         <Icon name="academic-cap" className="w-3.5 h-3.5" />
                         <span className="line-clamp-1">{quiz.trainingModule.title}</span>
                       </div>
                     )}
 
-                    <p className="text-xs text-slate-500 mt-2 line-clamp-3 leading-relaxed">
+                    <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
                       {quiz.description || 'Test your knowledge on key principles and guidelines from this security module.'}
                     </p>
                   </div>
 
-                  {/* Card Footer */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <div className="text-[11px] text-slate-400">
+                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+                    <div className="text-[11px] text-slate-500">
                       {quiz.questionCount || 0} Questions
                     </div>
-
                     {canAttempt ? (
                       <button
                         data-start-quiz-btn={quiz.id}
                         onClick={() => setTakingQuizId(quiz.id)}
-                        className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                           hasPassed
-                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs'
+                            ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
                         }`}
                       >
                         <span>{hasPassed ? 'Retake Quiz' : latestAttempt ? 'Retry Quiz' : 'Start Assessment'}</span>
@@ -356,12 +307,8 @@ export default function QuizzesPage() {
                     ) : (
                       <button
                         disabled
-                        className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-400 cursor-not-allowed flex items-center space-x-1.5"
-                        title={
-                          !hasCompletedTraining
-                            ? 'You must complete the associated training module first.'
-                            : 'Assessment is currently unavailable.'
-                        }
+                        className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-slate-800/60 text-slate-500 cursor-not-allowed flex items-center gap-1.5"
+                        title={!hasCompletedTraining ? 'Complete the training module first.' : 'Assessment unavailable.'}
                       >
                         <Icon name="lock" className="w-3.5 h-3.5" />
                         <span>Locked</span>

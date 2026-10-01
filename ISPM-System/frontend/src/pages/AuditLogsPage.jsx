@@ -1,23 +1,17 @@
 /**
  * pages/AuditLogsPage.jsx
- * Read-only Audit Log viewer.
- *
+ * Professional security audit log viewer with filtering and pagination.
  * Accessible to: SYSTEM_ADMIN, COMPLIANCE_OFFICER
- *
- * Features:
- *  - Server-side pagination (newest first)
- *  - Search across action / description / userEmail / entityType / entityId
- *  - Filters: action (dropdown), entity type (dropdown), dateFrom, dateTo
- *  - Clear Filters button resets to page 1
- *  - Audit action codes are humanised for display; raw codes are preserved in data
  */
 import { useState, useEffect, useCallback } from 'react';
 import { getAuditLogsRequest, getAuditMetaRequest } from '../services/audit.service.js';
 import Icon from '../components/common/Icon.jsx';
+import PageHeader from '../components/common/PageHeader.jsx';
+import LoadingState from '../components/common/LoadingState.jsx';
+import ErrorState from '../components/common/ErrorState.jsx';
+import EmptyState from '../components/common/EmptyState.jsx';
+import Pagination from '../components/common/Pagination.jsx';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-/** Convert SNAKE_CASE action code to Title Case for display. */
 function humaniseAction(action) {
   if (!action) return '—';
   return action
@@ -26,45 +20,35 @@ function humaniseAction(action) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-/** Colour a pill based on action category. */
 function actionBadgeClass(action = '') {
-  if (action.startsWith('LOGIN'))       return 'bg-blue-50 text-blue-700 border-blue-200';
-  if (action.startsWith('USER'))        return 'bg-purple-50 text-purple-700 border-purple-200';
-  if (action.startsWith('POLICY'))      return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-  if (action.startsWith('TRAINING'))    return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  if (action.startsWith('QUIZ'))        return 'bg-amber-50 text-amber-700 border-amber-200';
-  if (action.startsWith('HELPDESK'))    return 'bg-orange-50 text-orange-700 border-orange-200';
-  if (action.startsWith('COMPLIANCE'))  return 'bg-teal-50 text-teal-700 border-teal-200';
-  return 'bg-slate-50 text-slate-700 border-slate-200';
+  if (action.startsWith('LOGIN'))       return 'bg-blue-500/10 text-blue-300 border-blue-500/30';
+  if (action.startsWith('USER'))        return 'bg-purple-500/10 text-purple-300 border-purple-500/30';
+  if (action.startsWith('POLICY'))      return 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30';
+  if (action.startsWith('TRAINING'))    return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+  if (action.startsWith('QUIZ'))        return 'bg-amber-500/10 text-amber-300 border-amber-500/30';
+  if (action.startsWith('HELPDESK'))    return 'bg-orange-500/10 text-orange-300 border-orange-500/30';
+  if (action.startsWith('COMPLIANCE'))  return 'bg-teal-500/10 text-teal-300 border-teal-500/30';
+  return 'bg-slate-800/60 text-slate-300 border-slate-700/50';
 }
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
-
-// ─── Component ──────────────────────────────────────────────────────────────
+const INPUT_CLASS = 'w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30';
 
 export default function AuditLogsPage() {
-  // Data
   const [logs, setLogs]               = useState([]);
   const [pagination, setPagination]   = useState({ page: 1, limit: 20, totalRecords: 0, totalPages: 0 });
   const [metaActions, setMetaActions] = useState([]);
   const [metaTypes, setMetaTypes]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState('');
+  const [search, setSearch]           = useState('');
+  const [action, setAction]           = useState('');
+  const [entityType, setEntityType]   = useState('');
+  const [dateFrom, setDateFrom]       = useState('');
+  const [dateTo, setDateTo]           = useState('');
+  const [page, setPage]               = useState(1);
+  const [limit, setLimit]             = useState(20);
 
-  // Loading / error
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
-
-  // Filters (committed = sent to server)
-  const [search,     setSearch]     = useState('');
-  const [action,     setAction]     = useState('');
-  const [entityType, setEntityType] = useState('');
-  const [dateFrom,   setDateFrom]   = useState('');
-  const [dateTo,     setDateTo]     = useState('');
-
-  // Pagination controls
-  const [page,  setPage]  = useState(1);
-  const [limit, setLimit] = useState(20);
-
-  // ─── Fetch filter metadata once ────────────────────────────────────────
   useEffect(() => {
     getAuditMetaRequest().then((res) => {
       if (res.ok && res.data?.success) {
@@ -74,26 +58,24 @@ export default function AuditLogsPage() {
     }).catch(() => {});
   }, []);
 
-  // ─── Fetch logs ────────────────────────────────────────────────────────
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await getAuditLogsRequest({
-        search:     search || undefined,
-        action:     action || undefined,
-        entityType: entityType || undefined,
-        dateFrom:   dateFrom || undefined,
-        dateTo:     dateTo || undefined,
-        page,
-        limit,
-      });
+      const params = { page, limit };
+      if (search)     params.search = search;
+      if (action)     params.action = action;
+      if (entityType) params.entityType = entityType;
+      if (dateFrom)   params.dateFrom = dateFrom;
+      if (dateTo)     params.dateTo = dateTo;
 
+      const res = await getAuditLogsRequest(params);
       if (res.ok && res.data?.success) {
-        setLogs(res.data.data.logs || []);
-        setPagination(res.data.data.pagination || {});
+        const d = res.data.data;
+        setLogs(d.logs || []);
+        setPagination(d.pagination || { page: 1, limit, totalRecords: 0, totalPages: 0 });
       } else {
-        setError(res.data?.message || 'Failed to retrieve audit logs.');
+        setError(res.data?.message || 'Failed to retrieve audit records.');
       }
     } catch {
       setError('A network error occurred while loading audit logs.');
@@ -106,101 +88,69 @@ export default function AuditLogsPage() {
     fetchLogs();
   }, [fetchLogs]);
 
-  // ─── Handlers ──────────────────────────────────────────────────────────
-
   const handleFilterChange = (setter) => (e) => {
     setter(e.target.value);
-    setPage(1); // Reset to page 1 whenever any filter changes
+    setPage(1);
   };
 
   const handleClearFilters = () => {
-    setSearch('');
-    setAction('');
-    setEntityType('');
-    setDateFrom('');
-    setDateTo('');
+    setSearch(''); setAction(''); setEntityType(''); setDateFrom(''); setDateTo('');
     setPage(1);
   };
 
   const hasFilters = search || action || entityType || dateFrom || dateTo;
 
-  // ─── Render ────────────────────────────────────────────────────────────
-
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      <PageHeader
+        title="Security Audit Logs"
+        description="Tamper-evident chronological record of authentication, policy, training, quiz, and administrative events."
+        icon="shield-check"
+        action={
+          pagination.totalRecords > 0 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-right shrink-0">
+              <div className="text-xl font-extrabold text-slate-100">{pagination.totalRecords.toLocaleString()}</div>
+              <div className="text-[11px] text-slate-400 font-medium">total events</div>
+            </div>
+          ) : null
+        }
+      />
 
-      {/* ── Header ── */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 flex-shrink-0">
-            <Icon name="shield-check" className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Security Audit Logs</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Tamper-evident record of authentication, policy, training, quiz, and administrative events.
-            </p>
-          </div>
-        </div>
-        {pagination.totalRecords > 0 && (
-          <div className="flex-shrink-0 text-right">
-            <span className="text-2xl font-bold text-slate-800">{pagination.totalRecords.toLocaleString()}</span>
-            <p className="text-xs text-slate-500">total events</p>
-          </div>
-        )}
-      </div>
-
-      {/* ── Filters ── */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-3">
+      {/* Filters Panel */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-700">Filters</h2>
+          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Filter Events</h2>
           {hasFilters && (
             <button
               onClick={handleClearFilters}
-              className="text-xs text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
+              className="text-xs text-blue-400 font-bold hover:text-blue-300 transition-colors cursor-pointer"
             >
               Clear Filters
             </button>
           )}
         </div>
 
-        {/* Row 1: search + action + entityType */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Search */}
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-              <Icon name="search" className="w-4 h-4" />
-            </span>
+            <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="audit-search"
               type="text"
               placeholder="Search action, email, entity…"
               value={search}
               onChange={handleFilterChange(setSearch)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-slate-800 placeholder-slate-400"
+              className={INPUT_CLASS + ' pl-9'}
             />
           </div>
 
-          {/* Action filter */}
-          <select
-            id="audit-action-filter"
-            value={action}
-            onChange={handleFilterChange(setAction)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-slate-800"
-          >
+          <select id="audit-action-filter" value={action} onChange={handleFilterChange(setAction)} className={INPUT_CLASS}>
             <option value="">All Actions</option>
             {metaActions.map((a) => (
               <option key={a} value={a}>{humaniseAction(a)}</option>
             ))}
           </select>
 
-          {/* Entity type filter */}
-          <select
-            id="audit-entity-filter"
-            value={entityType}
-            onChange={handleFilterChange(setEntityType)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-slate-800"
-          >
+          <select id="audit-entity-filter" value={entityType} onChange={handleFilterChange(setEntityType)} className={INPUT_CLASS}>
             <option value="">All Entity Types</option>
             {metaTypes.map((t) => (
               <option key={t} value={t}>{t}</option>
@@ -208,35 +158,22 @@ export default function AuditLogsPage() {
           </select>
         </div>
 
-        {/* Row 2: dateFrom + dateTo + page size */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="block text-[11px] text-slate-500 font-semibold mb-1 uppercase tracking-wide">From Date</label>
-            <input
-              id="audit-date-from"
-              type="date"
-              value={dateFrom}
-              onChange={handleFilterChange(setDateFrom)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-slate-800"
-            />
+            <label className="block text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wide">From Date</label>
+            <input id="audit-date-from" type="date" value={dateFrom} onChange={handleFilterChange(setDateFrom)} className={INPUT_CLASS} />
           </div>
           <div>
-            <label className="block text-[11px] text-slate-500 font-semibold mb-1 uppercase tracking-wide">To Date</label>
-            <input
-              id="audit-date-to"
-              type="date"
-              value={dateTo}
-              onChange={handleFilterChange(setDateTo)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-slate-800"
-            />
+            <label className="block text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wide">To Date</label>
+            <input id="audit-date-to" type="date" value={dateTo} onChange={handleFilterChange(setDateTo)} className={INPUT_CLASS} />
           </div>
           <div>
-            <label className="block text-[11px] text-slate-500 font-semibold mb-1 uppercase tracking-wide">Rows per page</label>
+            <label className="block text-[11px] text-slate-400 font-bold mb-1 uppercase tracking-wide">Rows per Page</label>
             <select
               id="audit-page-size"
               value={limit}
               onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-slate-800"
+              className={INPUT_CLASS}
             >
               {PAGE_SIZE_OPTIONS.map((n) => (
                 <option key={n} value={n}>{n} per page</option>
@@ -246,104 +183,83 @@ export default function AuditLogsPage() {
         </div>
       </div>
 
-      {/* ── Table ── */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
-
-        {/* Table header row */}
-        <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-700">
-            {loading ? 'Loading…' : `${pagination.totalRecords?.toLocaleString() || 0} records`}
-            {hasFilters && !loading && ' (filtered)'}
+      {/* Table */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-3.5 border-b border-slate-800 flex items-center justify-between">
+          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+            {loading ? 'Loading…' : `${pagination.totalRecords?.toLocaleString() || 0} records${hasFilters ? ' (filtered)' : ''}`}
           </h2>
           {pagination.totalPages > 0 && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500">
               Page {pagination.page} of {pagination.totalPages}
             </span>
           )}
         </div>
 
         {loading ? (
-          <div className="p-16 flex flex-col items-center justify-center text-slate-400 space-y-3">
-            <Icon name="refresh" className="w-8 h-8 animate-spin text-indigo-500" />
-            <p className="text-sm font-medium">Loading audit records…</p>
-          </div>
+          <div className="p-6"><LoadingState message="Retrieving security audit records…" /></div>
         ) : error ? (
-          <div className="p-6">
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700">{error}</div>
-          </div>
+          <div className="p-6"><ErrorState message={error} onRetry={fetchLogs} /></div>
         ) : logs.length === 0 ? (
-          <div className="p-16 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto mb-3">
-              <Icon name="shield-check" className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-slate-700">No audit records found</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              {hasFilters ? 'No records match the current filter criteria.' : 'No audit events have been recorded yet.'}
-            </p>
+          <div className="p-6">
+            <EmptyState
+              title="No audit records found"
+              description={hasFilters ? 'No records match the current filter criteria. Clear filters to see all events.' : 'No audit events have been recorded yet.'}
+              icon="shield-check"
+            />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">Date / Time</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 uppercase tracking-wide">Actor</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 uppercase tracking-wide">Action</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 uppercase tracking-wide">Entity</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 uppercase tracking-wide">Description</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">IP Address</th>
+                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="px-4 py-3.5 text-left whitespace-nowrap">Date / Time</th>
+                  <th className="px-4 py-3.5 text-left">Actor</th>
+                  <th className="px-4 py-3.5 text-left">Action</th>
+                  <th className="px-4 py-3.5 text-left">Entity</th>
+                  <th className="px-4 py-3.5 text-left">Description</th>
+                  <th className="px-4 py-3.5 text-left whitespace-nowrap">IP Address</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-800/70">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/60 transition-colors">
-                    {/* Date/Time */}
-                    <td className="px-4 py-3 whitespace-nowrap text-slate-500 font-mono">
+                  <tr key={log.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-[11px]">
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
-
-                    {/* Actor */}
                     <td className="px-4 py-3 max-w-[160px]">
-                      <span className="text-slate-700 font-medium truncate block" title={log.userEmail || log.userId || '—'}>
-                        {log.userEmail || (log.userId ? `ID: ${log.userId.substring(0, 8)}…` : '—')}
+                      <span className="text-slate-200 font-medium truncate block font-mono text-[11px]" title={log.userEmail || ''}>
+                        {log.userEmail || (log.userId ? `${log.userId.substring(0, 10)}…` : '—')}
                       </span>
                     </td>
-
-                    {/* Action badge */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold ${actionBadgeClass(log.action)}`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-md border text-[11px] font-semibold uppercase tracking-wide ${actionBadgeClass(log.action)}`}
                         title={log.action}
                       >
                         {humaniseAction(log.action)}
                       </span>
                     </td>
-
-                    {/* Entity */}
                     <td className="px-4 py-3">
                       {log.entityType ? (
                         <div>
-                          <span className="text-slate-700 font-medium">{log.entityType}</span>
+                          <span className="text-slate-200 font-semibold">{log.entityType}</span>
                           {log.entityId && (
-                            <span className="block text-slate-400 font-mono text-[10px] mt-0.5" title={log.entityId}>
-                              {log.entityId.substring(0, 12)}…
+                            <span className="block text-slate-500 font-mono text-[10px] mt-0.5" title={log.entityId}>
+                              {log.entityId.substring(0, 14)}…
                             </span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-slate-500">—</span>
                       )}
                     </td>
-
-                    {/* Description */}
                     <td className="px-4 py-3 max-w-xs">
-                      <span className="text-slate-600 line-clamp-2 leading-relaxed" title={log.description || ''}>
+                      <span className="text-slate-300 line-clamp-2 leading-relaxed" title={log.description || ''}>
                         {log.description || '—'}
                       </span>
                     </td>
-
-                    {/* IP Address */}
-                    <td className="px-4 py-3 whitespace-nowrap text-slate-500 font-mono">
+                    <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-[11px]">
                       {log.ipAddress || '—'}
                     </td>
                   </tr>
@@ -353,33 +269,13 @@ export default function AuditLogsPage() {
           </div>
         )}
 
-        {/* ── Pagination controls ── */}
         {!loading && !error && pagination.totalPages > 0 && (
-          <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between gap-4">
-            <button
-              id="audit-prev-page"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={pagination.page <= 1}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-            >
-              ← Previous
-            </button>
-
-            <span className="text-xs text-slate-500">
-              Page <span className="font-bold text-slate-700">{pagination.page}</span> of{' '}
-              <span className="font-bold text-slate-700">{pagination.totalPages}</span>
-              {' '}({pagination.totalRecords?.toLocaleString()} records)
-            </span>
-
-            <button
-              id="audit-next-page"
-              onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-              disabled={pagination.page >= pagination.totalPages}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-            >
-              Next →
-            </button>
-          </div>
+          <Pagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalRecords}
+            onPageChange={setPage}
+          />
         )}
       </div>
     </div>

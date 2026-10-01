@@ -1,6 +1,6 @@
 /**
  * pages/LoginPage.jsx
- * Professional, accessible login page for the ISPM System.
+ * Enterprise authentication layout for the ISPM Platform.
  */
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -45,20 +45,18 @@ export default function LoginPage() {
     try {
       const result = await login(email.trim(), password);
       if (result.ok) {
-        // Redirect to intended route or default /dashboard
         const from = location.state?.from?.pathname || '/dashboard';
         navigate(from, { replace: true });
       } else {
-        setErrorMessage(result.message || 'Invalid email or password');
+        setErrorMessage(result.message || 'Invalid credentials. Please verify your email and password.');
       }
     } catch {
-      setErrorMessage('A connection error occurred. Please try again.');
+      setErrorMessage('A security connection error occurred. Please check network connectivity and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Quick helper to fill test accounts during development/review
   const fillCredentials = (demoEmail) => {
     setEmail(demoEmail);
     setPassword('Ispm@Dev2024!');
@@ -67,184 +65,207 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      {/* Background Accent Grid / Glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/30 via-slate-950 to-slate-950 pointer-events-none" />
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+      {/* Background Subtle Security Pattern Grid */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(30,64,175,0.15),transparent_50%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(15,23,42,0.8),transparent_50%)] pointer-events-none" />
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Header Branding */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600/10 border border-blue-500/30 text-blue-400 mb-4 shadow-lg shadow-blue-900/20">
-            <Icon name="shield-check" className="w-8 h-8 text-blue-400" />
+      <div className="max-w-5xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+        
+        {/* Left Branding / Overview Panel (Desktop Only or Top on Mobile) */}
+        <div className="lg:col-span-6 flex flex-col justify-between space-y-8 pr-0 lg:pr-6">
+          <div>
+            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase mb-6">
+              <Icon name="shield" className="w-4 h-4" />
+              <span>University Security Governance Portal</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight leading-tight">
+              Information Security Policy & Management
+            </h1>
+            <p className="mt-3 text-base text-slate-300 leading-relaxed">
+              Centralized platform for policy distribution, mandatory awareness training, automated compliance tracking, and administrative audit monitoring.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            ISPM System
-          </h1>
-          <p className="mt-1 text-sm font-medium text-slate-300">
-            Information Security Policy Awareness & Management System
-          </p>
-          <p className="mt-1 text-xs text-slate-400">
-            Enterprise cyber governance, policy compliance, and awareness training
-          </p>
+
+          {/* Key Platform Capabilities List */}
+          <div className="space-y-4 pt-2 border-t border-slate-800/80">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0 mt-0.5">
+                <Icon name="shield-check" className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-200">Policy Lifecycle & Version Control</h4>
+                <p className="text-xs text-slate-400">Formal policy publishing, version history, and legally binding employee acknowledgements.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0 mt-0.5">
+                <Icon name="academic-cap" className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-200">Cyber Awareness & Knowledge Scoring</h4>
+                <p className="text-xs text-slate-400">Interactive training modules, locked quiz prerequisite gates, and real-time pass/fail metrics.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0 mt-0.5">
+                <Icon name="chart" className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-200">Executive Compliance Auditing</h4>
+                <p className="text-xs text-slate-400">Departmental breakdowns, overall compliance scoring, and detailed audit log tracking.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Login Card */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl shadow-2xl p-6 sm:p-8 backdrop-blur-sm">
-          {/* Top Security Banner */}
-          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-800 text-xs text-slate-400">
-            <Icon name="lock" className="w-4 h-4 text-blue-400" />
-            <span>Authorized personnel access only</span>
-          </div>
-
-          {/* Error Alert Box */}
-          {errorMessage && (
-            <div
-              role="alert"
-              className="mb-5 p-3.5 rounded-lg bg-red-950/60 border border-red-800/80 text-red-200 text-sm flex items-start gap-3"
-            >
-              <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div className="flex-1 font-medium">{errorMessage}</div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-200 mb-1.5">
-                Email Address <span className="text-red-400">*</span>
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                disabled={isSubmitting}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: '' });
-                }}
-                className={`w-full px-3.5 py-2.5 bg-slate-950/80 border rounded-lg text-white text-sm focus:outline-none focus:ring-2 transition-all placeholder:text-slate-600 ${
-                  fieldErrors.email
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-slate-700 focus:border-blue-500 focus:ring-blue-500/50'
-                }`}
-                placeholder="name@ispm.local"
-              />
-              {fieldErrors.email && (
-                <p className="mt-1 text-xs text-red-400">{fieldErrors.email}</p>
-              )}
+        {/* Right Authentication Form Panel */}
+        <div className="lg:col-span-6">
+          <div className="bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-md">
+            
+            <div className="flex items-center justify-between pb-6 mb-6 border-b border-slate-800">
+              <div>
+                <h2 className="text-xl font-bold text-slate-100">Sign In to Your Account</h2>
+                <p className="text-xs text-slate-400 mt-1">Enter your credentials to access your security portal</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                <Icon name="lock" className="w-5 h-5" />
+              </div>
             </div>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-200 mb-1.5">
-                Password <span className="text-red-400">*</span>
-              </label>
-              <div className="relative">
+            {errorMessage && (
+              <div role="alert" className="mb-5 p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-200 text-xs flex items-start gap-3">
+                <Icon name="close" className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium">{errorMessage}</div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Email Address <span className="text-rose-400">*</span>
+                </label>
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   disabled={isSubmitting}
-                  value={password}
+                  value={email}
                   onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' });
+                    setEmail(e.target.value);
+                    if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: '' });
                   }}
-                  className={`w-full px-3.5 py-2.5 pr-11 bg-slate-950/80 border rounded-lg text-white text-sm focus:outline-none focus:ring-2 transition-all placeholder:text-slate-600 ${
-                    fieldErrors.password
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-slate-700 focus:border-blue-500 focus:ring-blue-500/50'
+                  className={`w-full px-3.5 py-2.5 bg-slate-950 border rounded-xl text-slate-100 text-sm focus:outline-none focus:ring-2 transition-all placeholder:text-slate-600 ${
+                    fieldErrors.email ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-800 focus:border-blue-500 focus:ring-blue-500/40'
                   }`}
-                  placeholder="••••••••••••"
+                  placeholder="name@university.edu"
                 />
+                {fieldErrors.email && <p className="mt-1 text-xs text-rose-400">{fieldErrors.email}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Password <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    disabled={isSubmitting}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' });
+                    }}
+                    className={`w-full px-3.5 py-2.5 pr-11 bg-slate-950 border rounded-xl text-slate-100 text-sm focus:outline-none focus:ring-2 transition-all placeholder:text-slate-600 ${
+                      fieldErrors.password ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-800 focus:border-blue-500 focus:ring-blue-500/40'
+                    }`}
+                    placeholder="••••••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1 rounded-lg focus:outline-none"
+                  >
+                    <Icon name={showPassword ? 'eye-off' : 'eye'} className="w-4 h-4" />
+                  </button>
+                </div>
+                {fieldErrors.password && <p className="mt-1 text-xs text-rose-400">{fieldErrors.password}</p>}
+              </div>
+
+              <div className="pt-2">
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none p-1"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 transition-all shadow-lg shadow-blue-950 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <Icon name={showPassword ? 'eye-off' : 'eye'} className="w-4 h-4" />
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Authenticating...</span>
+                    </>
+                  ) : (
+                    <span>Sign In to Portal</span>
+                  )}
                 </button>
               </div>
-              {fieldErrors.password && (
-                <p className="mt-1 text-xs text-red-400">{fieldErrors.password}</p>
-              )}
+            </form>
+
+            {/* Quick Demo Role Selector for University Demonstration */}
+            <div className="mt-6 pt-5 border-t border-slate-800">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Demo Role Accounts</span>
+                <span className="text-[10px] text-slate-500 font-medium">Click to populate demo account</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => fillCredentials('admin@ispm.local')}
+                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition-all group cursor-pointer"
+                >
+                  <div className="font-semibold text-purple-300 group-hover:text-purple-200">System Admin</div>
+                  <div className="text-[10px] text-slate-400 truncate">admin@ispm.local</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fillCredentials('compliance@ispm.local')}
+                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition-all group cursor-pointer"
+                >
+                  <div className="font-semibold text-emerald-300 group-hover:text-emerald-200">Compliance Officer</div>
+                  <div className="text-[10px] text-slate-400 truncate">compliance@ispm.local</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fillCredentials('training@ispm.local')}
+                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition-all group cursor-pointer"
+                >
+                  <div className="font-semibold text-amber-300 group-hover:text-amber-200">Training Admin</div>
+                  <div className="text-[10px] text-slate-400 truncate">training@ispm.local</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fillCredentials('employee@ispm.local')}
+                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition-all group cursor-pointer"
+                >
+                  <div className="font-semibold text-blue-300 group-hover:text-blue-200">Primary Employee</div>
+                  <div className="text-[10px] text-slate-400 truncate">employee@ispm.local</div>
+                </button>
+              </div>
             </div>
 
-            {/* Submit Button */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-semibold text-sm text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 transition-colors shadow-lg shadow-blue-900/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Signing in...</span>
-                  </>
-                ) : (
-                  <span>Sign In</span>
-                )}
-              </button>
-            </div>
-          </form>
-
-          {/* Quick Demo Switcher (Dev / Prototype Testing Helper) */}
-          <div className="mt-6 pt-5 border-t border-slate-800">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">
-              Quick Fill Demo Accounts
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => fillCredentials('admin@ispm.local')}
-                className="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-left truncate"
-                title="System Administrator (admin@ispm.local)"
-              >
-                <div className="font-semibold text-purple-300">System Admin</div>
-                <div className="text-[10px] text-slate-400 truncate">admin@ispm.local</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials('compliance@ispm.local')}
-                className="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-left truncate"
-                title="Compliance Officer (compliance@ispm.local)"
-              >
-                <div className="font-semibold text-emerald-300">Compliance Officer</div>
-                <div className="text-[10px] text-slate-400 truncate">compliance@ispm.local</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials('training@ispm.local')}
-                className="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-left truncate"
-                title="Training Administrator (training@ispm.local)"
-              >
-                <div className="font-semibold text-amber-300">Training Admin</div>
-                <div className="text-[10px] text-slate-400 truncate">training@ispm.local</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillCredentials('employee@ispm.local')}
-                className="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-left truncate"
-                title="Employee (employee@ispm.local)"
-              >
-                <div className="font-semibold text-blue-300">Employee</div>
-                <div className="text-[10px] text-slate-400 truncate">employee@ispm.local</div>
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Security Notice Footer */}
-        <p className="mt-6 text-center text-xs text-slate-500">
-          This system is restricted to authorized personnel. All session events and actions are logged and audited.
-        </p>
       </div>
     </div>
   );

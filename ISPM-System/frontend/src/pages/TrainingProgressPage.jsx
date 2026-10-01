@@ -1,11 +1,15 @@
 /**
  * pages/TrainingProgressPage.jsx
  * Training Progress Oversight page for TRAINING_ADMIN.
- * Displays overall organization progress metrics across all authored training modules.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { listTrainingRequest } from '../services/training.service.js';
 import Icon from '../components/common/Icon.jsx';
+import PageHeader from '../components/common/PageHeader.jsx';
+import StatusBadge from '../components/common/StatusBadge.jsx';
+import LoadingState from '../components/common/LoadingState.jsx';
+import ErrorState from '../components/common/ErrorState.jsx';
+import EmptyState from '../components/common/EmptyState.jsx';
 import TrainingProgressModal from '../components/training/TrainingProgressModal.jsx';
 
 export default function TrainingProgressPage() {
@@ -38,121 +42,76 @@ export default function TrainingProgressPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
-            <Icon name="trending-up" className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Training Progress Oversight</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Monitor organization-wide course engagement, completion ratios, and employee compliance statuses
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Training Progress Oversight"
+        description="Monitor organization-wide course engagement, completion ratios, and employee compliance statuses."
+        icon="trending-up"
+      />
 
       {/* Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs">
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
         <div className="relative">
-          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Icon name="search" className="w-4 h-4" />
-          </span>
+          <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search training modules by name..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            placeholder="Search training modules by name…"
+            className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
       </div>
 
       {/* Modules Progress Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-800">
-            Course Completion Overview
-          </h2>
-          <span className="text-xs text-slate-500">
-            {modules.length} active module{modules.length !== 1 ? 's' : ''}
-          </span>
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-3.5 border-b border-slate-800 flex items-center justify-between">
+          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Course Completion Overview</h2>
+          <span className="text-xs text-slate-400">{modules.length} active module{modules.length !== 1 ? 's' : ''}</span>
         </div>
 
         {loading ? (
-          <div className="p-16 flex flex-col items-center justify-center text-slate-400 space-y-3">
-            <Icon name="refresh" className="w-8 h-8 animate-spin text-indigo-500" />
-            <p className="text-sm font-medium">Loading training reports...</p>
-          </div>
+          <div className="p-6"><LoadingState message="Loading training progress reports…" /></div>
         ) : error ? (
-          <div className="p-6">
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700">
-              {error}
-            </div>
-          </div>
+          <div className="p-6"><ErrorState message={error} onRetry={fetchModules} /></div>
         ) : modules.length === 0 ? (
-          <div className="p-16 text-center text-slate-400 text-sm">
-            No training modules found.
-          </div>
+          <div className="p-6"><EmptyState title="No training modules found" description="No active training modules are available." icon="academic-cap" /></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-6">Training Module</th>
-                  <th className="py-3.5 px-6">Status</th>
-                  <th className="py-3.5 px-6">Completions</th>
-                  <th className="py-3.5 px-6">In Progress</th>
-                  <th className="py-3.5 px-6 text-right">Detailed Report</th>
+                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3.5 px-5">Training Module</th>
+                  <th className="py-3.5 px-5">Status</th>
+                  <th className="py-3.5 px-5">Completions</th>
+                  <th className="py-3.5 px-5">In Progress</th>
+                  <th className="py-3.5 px-5 text-right">Report</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-800/70 text-xs">
                 {modules.map((mod) => {
                   const stats = mod.stats || { completed: 0, inProgress: 0, notStarted: 0 };
-
                   return (
-                    <tr key={mod.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-6 max-w-sm">
-                        <div className="font-bold text-slate-800 text-sm">{mod.title}</div>
-                        <p className="text-slate-500 text-xs line-clamp-1 mt-0.5">
-                          {mod.description || 'Cybersecurity training course'}
-                        </p>
+                    <tr key={mod.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="py-4 px-5 max-w-sm">
+                        <div className="font-bold text-slate-100 text-sm">{mod.title}</div>
+                        <p className="text-slate-400 text-xs line-clamp-1 mt-0.5">{mod.description || 'Cybersecurity training course'}</p>
                       </td>
-
-                      <td className="py-4 px-6">
-                        {mod.isPublished ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Published
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                            Draft
-                          </span>
-                        )}
+                      <td className="py-4 px-5">
+                        <StatusBadge status={mod.isPublished ? 'PUBLISHED' : 'DRAFT'} />
                       </td>
-
-                      <td className="py-4 px-6">
-                        <span className="font-semibold text-emerald-700">
-                          {stats.completed} employee{stats.completed !== 1 ? 's' : ''}
-                        </span>
+                      <td className="py-4 px-5">
+                        <span className="font-bold text-emerald-400">{stats.completed} employee{stats.completed !== 1 ? 's' : ''}</span>
                       </td>
-
-                      <td className="py-4 px-6">
-                        <span className="font-semibold text-amber-700">
-                          {stats.inProgress} active
-                        </span>
+                      <td className="py-4 px-5">
+                        <span className="font-bold text-amber-400">{stats.inProgress} active</span>
                       </td>
-
-                      <td className="py-4 px-6 text-right">
+                      <td className="py-4 px-5 text-right">
                         <button
                           onClick={() => setSelectedModuleId(mod.id)}
-                          className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold transition-colors inline-flex items-center space-x-1.5"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 hover:border-blue-500 text-xs font-bold transition-all cursor-pointer"
                         >
+                          <Icon name="eye" className="w-3.5 h-3.5" />
                           <span>View Roster</span>
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
                         </button>
                       </td>
                     </tr>
