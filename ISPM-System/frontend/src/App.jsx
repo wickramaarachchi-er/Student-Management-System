@@ -25,6 +25,7 @@ import DashboardLayout from './layouts/DashboardLayout.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import UsersPage from './pages/UsersPage.jsx';
+import PoliciesPage from './pages/PoliciesPage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -67,11 +68,7 @@ export default function App() {
           path="/policies"
           element={
             <ProtectedRoute roles={['COMPLIANCE_OFFICER', 'EMPLOYEE']}>
-              <ComingSoonPage
-                title="Information Security Policies"
-                description="Browse corporate security policies, review updates, and sign acknowledgements."
-                icon="book"
-              />
+              <PoliciesPage />
             </ProtectedRoute>
           }
         />
