@@ -32,6 +32,7 @@ import MyProgressPage from './pages/MyProgressPage.jsx';
 import QuizzesPage from './pages/QuizzesPage.jsx';
 import ComplianceDashboardPage from './pages/ComplianceDashboardPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
+import HelpdeskPage from './pages/HelpdeskPage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -137,11 +138,7 @@ export default function App() {
           path="/helpdesk"
           element={
             <ProtectedRoute roles={['SYSTEM_ADMIN', 'EMPLOYEE']}>
-              <ComingSoonPage
-                title="Security Helpdesk"
-                description="Submit security inquiries, report phishing incidents, or request guidance."
-                icon="helpdesk"
-              />
+              <HelpdeskPage />
             </ProtectedRoute>
           }
         />

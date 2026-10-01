@@ -12,6 +12,7 @@ import policyRouter from './policy.js';
 import trainingRouter from './training.js';
 import quizRouter from './quiz.js';
 import complianceRouter from './compliance.js';
+import helpdeskRouter from './helpdesk.js';
 
 const router = Router();
 
@@ -35,6 +36,9 @@ router.use('/quizzes', quizRouter);
 
 // Compliance Tracking & Reporting – /api/compliance (COMPLIANCE_OFFICER, EMPLOYEE)
 router.use('/compliance', complianceRouter);
+
+// Helpdesk & Security Query – /api/helpdesk (SYSTEM_ADMIN, EMPLOYEE)
+router.use('/helpdesk', helpdeskRouter);
 
 // DEVELOPMENT ONLY – RBAC verification routes; remove before production
 router.use('/test', testRouter);

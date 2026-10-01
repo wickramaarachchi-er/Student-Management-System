@@ -7,7 +7,7 @@ async function main() {
   const logs = await prisma.auditLog.findMany({
     where: {
       action: {
-        in: ['COMPLIANT_REPORT_VIEWED', 'COMPLIANCE_REPORT_VIEWED', 'COMPLIANCE_EMPLOYEE_VIEWED']
+        in: ['HELPDESK_TICKET_CREATED', 'HELPDESK_RESPONSE_ADDED', 'HELPDESK_STATUS_CHANGED']
       }
     },
     orderBy: { createdAt: 'desc' },
@@ -16,7 +16,7 @@ async function main() {
 
   console.log(`Found ${logs.length} compliance audit log entries:`);
   logs.forEach((log) => {
-    console.log(`- [${log.createdAt.toISOString()}] Action: ${log.action} | User: ${log.userId} | Target: ${log.targetId || 'N/A'} | Desc: ${log.details}`);
+    console.log(`- [${log.createdAt.toISOString()}] Action: ${log.action} | User: ${log.userId} | Entity: ${log.entityType}/${log.entityId || 'N/A'} | Desc: ${log.description}`);
   });
 }
 
