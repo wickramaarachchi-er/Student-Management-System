@@ -64,24 +64,24 @@ export default function DashboardPage() {
   return (
     <div className="space-y-7 sm:space-y-8">
       {/* Page Header / Welcome Area */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 mb-8 border-b border-slate-800/80">
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 pb-6 border-b border-[#142347]">
         <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-semibold mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
             <span>Enterprise Security Dashboard</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-white tracking-tight leading-none">
             Welcome back, {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : roleLabel}
           </h1>
-          <p className="text-sm sm:text-base text-slate-400 font-normal leading-relaxed mt-2.5">
+          <p className="text-sm sm:text-base text-slate-400 font-normal leading-relaxed mt-3">
             {role === 'SYSTEM_ADMIN' && 'Manage users, support requests, and review system-wide security activity.'}
             {role === 'COMPLIANCE_OFFICER' && 'Information security policy oversight, compliance tracking, and reports.'}
             {role === 'TRAINING_ADMIN' && 'Manage security awareness training modules and assessment quizzes.'}
             {role === 'EMPLOYEE' && 'Your security awareness portal — policies, training, and compliance scorecard.'}
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start lg:self-auto px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs sm:text-sm text-slate-400 font-medium shadow-sm shrink-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+        <div className="flex items-center gap-2 self-start lg:self-auto px-4 py-2 rounded-full bg-[#060e22] border border-[#142347] text-xs sm:text-sm text-slate-300 font-medium shadow-sm shrink-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
           <span>{currentDateFormatted}</span>
         </div>
       </div>
