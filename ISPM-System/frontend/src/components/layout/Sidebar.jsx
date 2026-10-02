@@ -2,10 +2,11 @@
  * components/layout/Sidebar.jsx
  * Enterprise-grade Information Security Policy & Management System (ISPM) navigation sidebar.
  */
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import { ROLE_NAV_ITEMS, ROLE_LABELS } from '../../utils/roles.js';
 import Icon from '../common/Icon.jsx';
+import './Sidebar.css';
 
 export default function Sidebar({ onItemClick }) {
   const { user, logout } = useAuth();
@@ -19,6 +20,37 @@ export default function Sidebar({ onItemClick }) {
     logout();
     navigate('/login', { replace: true });
   };
+
+  if (user?.role === 'SYSTEM_ADMIN') {
+    const groups = [
+      { title: 'Workspace', paths: ['/dashboard', '/users'] },
+      { title: 'Operations', paths: ['/helpdesk', '/notifications', '/audit-logs'] },
+    ];
+
+    return (
+      <aside className="admin-sidebar" aria-label="Administration sidebar">
+        <Link to="/dashboard" onClick={onItemClick} className="admin-sidebar-brand" aria-label="ISPM dashboard">
+          <span className="admin-sidebar-logo"><Icon name="shield" className="w-6 h-6" /></span>
+          <span><strong>ISPM<span className="admin-brand-dot">.</span></strong><small>Security &amp; Compliance</small></span>
+        </Link>
+        <div className="admin-sidebar-workspace"><span className="admin-workspace-emblem"><Icon name="lock" className="w-4 h-4" /></span><div><strong>Administration</strong><span>System administrator</span></div></div>
+        <nav className="admin-sidebar-nav" aria-label="Sidebar Navigation">
+          {groups.map((group) => <div className="admin-nav-group" key={group.title}>
+            <h2>{group.title}</h2>
+            {navItems.filter((item) => group.paths.includes(item.path)).map((item) => (
+              <NavLink key={item.path} to={item.path} onClick={onItemClick} className={({ isActive }) => `admin-nav-item${isActive ? ' is-active' : ''}`}>
+                {({ isActive }) => <><Icon name={item.icon} className="w-[18px] h-[18px]" /><span>{item.label}</span>{isActive && <span className="admin-nav-indicator" aria-hidden="true" />}</>}
+              </NavLink>
+            ))}
+          </div>)}
+        </nav>
+        <div className="admin-sidebar-account">
+          <div className="admin-sidebar-profile"><span className="admin-sidebar-avatar">{initials}</span><div><strong title={fullName}>{fullName}</strong><small title={user?.email}>{user?.email || roleLabel}</small></div></div>
+          <button type="button" onClick={handleLogout} className="admin-sidebar-signout"><Icon name="logout" className="w-4 h-4" /><span>Sign out</span><span aria-hidden="true">&#8594;</span></button>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className="w-[260px] bg-slate-950 border-r border-slate-800 flex flex-col h-full select-none">

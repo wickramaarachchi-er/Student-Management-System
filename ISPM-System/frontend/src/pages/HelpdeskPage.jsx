@@ -17,6 +17,7 @@ import StatusBadge from '../components/common/StatusBadge.jsx';
 import LoadingState from '../components/common/LoadingState.jsx';
 import ErrorState from '../components/common/ErrorState.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+import './HelpdeskPage.css';
 
 const PRIORITY_STYLES = {
   CRITICAL: 'bg-rose-500/10 text-rose-300 border-rose-500/30',
@@ -30,7 +31,7 @@ const INPUT_CLASS = 'px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl t
 function PriorityBadge({ priority }) {
   const cls = PRIORITY_STYLES[priority] || PRIORITY_STYLES.LOW;
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-bold uppercase tracking-wide ${cls}`}>
+    <span className={`hd-priority hd-priority-${priority?.toLowerCase()} inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-bold uppercase tracking-wide ${cls}`}>
       {priority}
     </span>
   );
@@ -167,9 +168,15 @@ export default function HelpdeskPage() {
   const MODAL_INPUT = 'w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
 
   return (
-    <div className="space-y-6">
+    <div className={isAdmin ? "admin-helpdesk space-y-6" : "space-y-6"}>
+      {isAdmin ? (
+        <header className="hd-page-header">
+          <div><span className="hd-eyebrow">ADMINISTRATION / SUPPORT</span><h1>Help desk</h1><p>Manage security inquiries, respond to requests, and track ticket progress.</p></div>
+          <button type="button" className="hd-refresh" onClick={fetchTickets} disabled={loading}><Icon name="refresh" className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />Refresh tickets</button>
+        </header>
+      ) : (
       <PageHeader
-        title="Security Helpdesk & Support"
+        title={isAdmin ? "Help desk" : "Security Helpdesk & Support"}
         description={
           isAdmin
             ? 'Manage security inquiries, respond to support requests, and update ticket workflow statuses.'
@@ -185,39 +192,39 @@ export default function HelpdeskPage() {
               <Icon name="plus" className="w-4 h-4" />
               <span>Submit Security Query</span>
             </button>
-          ) : null
+          ) : (
+            <button type="button" className="hd-refresh" onClick={fetchTickets} disabled={loading}><Icon name="refresh" className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />Refresh tickets</button>
+          )
         }
       />
+      )}
 
-      {/* Filter Bar + Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
-            {isAdmin ? 'All Support Tickets' : 'My Support Tickets'}
-          </h2>
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search subject or description…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={`${INPUT_CLASS} w-52`}
-            />
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={INPUT_CLASS}>
-              <option value="">All Statuses</option>
-              <option value="OPEN">Open</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="RESOLVED">Resolved</option>
-              <option value="CLOSED">Closed</option>
-            </select>
-            <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className={INPUT_CLASS}>
-              <option value="">All Priorities</option>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="CRITICAL">Critical</option>
-            </select>
-          </div>
+      {isAdmin && (
+        <section className="hd-overview" aria-label="Ticket overview for current filters">
+          {[
+            { label: 'Open tickets', status: 'OPEN', icon: 'helpdesk', tone: 'amber', note: 'Waiting for a response' },
+            { label: 'In progress', status: 'IN_PROGRESS', icon: 'clipboard-list', tone: 'indigo', note: 'Currently being investigated' },
+            { label: 'Resolved', status: 'RESOLVED', icon: 'check', tone: 'green', note: 'Support requests resolved' },
+          ].map(card => (
+            <article className={`hd-stat hd-stat-${card.tone}`} key={card.status}>
+              <span className="hd-stat-icon"><Icon name={card.icon} className="w-5 h-5" /></span>
+              <div className="hd-stat-copy"><h2>{card.label}</h2><p>{card.note}</p></div>
+              <strong>{loading || error ? '\u2014' : tickets.filter(ticket => ticket.status === card.status).length}</strong>
+            </article>
+          ))}
+        </section>
+      )}
+
+      <div className={isAdmin ? 'hd-ticket-card' : 'bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm'}>
+        <div className={isAdmin ? 'hd-directory-heading' : 'px-6 py-4 border-b border-slate-800 flex flex-col gap-3'}>
+          <div><h2 className="text-sm font-bold text-slate-100">{isAdmin ? 'Support ticket directory' : 'My Support Tickets'} {isAdmin && <span className="hd-count">{loading || error ? '\u2014' : tickets.length}</span>}</h2>{isAdmin && <p>Review inquiries, follow conversations, and keep requests moving.</p>}</div>
+          {isAdmin && <span className="hd-directory-note"><Icon name="shield-check" className="w-4 h-4" />Security support</span>}
+        </div>
+        <div className={isAdmin ? 'hd-filters' : 'px-6 py-4 flex flex-wrap gap-3'}>
+          <label className="hd-search"><span>Search tickets</span><div><Icon name="search" className="w-4 h-4" /><input type="search" placeholder="Search subject or description..." value={search} onChange={e => setSearch(e.target.value)} className={INPUT_CLASS} /></div></label>
+          <label><span>Ticket status</span><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className={INPUT_CLASS}><option value="">All statuses</option><option value="OPEN">Open</option><option value="IN_PROGRESS">In progress</option><option value="RESOLVED">Resolved</option><option value="CLOSED">Closed</option></select></label>
+          <label><span>Priority level</span><select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className={INPUT_CLASS}><option value="">All priorities</option><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select></label>
+          <button type="button" className="hd-reset" disabled={!search && !statusFilter && !priorityFilter} onClick={() => { setSearch(''); setStatusFilter(''); setPriorityFilter(''); }}>Reset filters</button>
         </div>
 
         {loading ? (
@@ -233,16 +240,17 @@ export default function HelpdeskPage() {
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto hd-table-scroll" tabIndex={0} aria-label="Support tickets table">
             <table className="w-full text-left border-collapse">
+              <caption className="sr-only">Support inquiries, submitters, priority, status, dates, and conversations</caption>
               <thead>
                 <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-5">Ticket Subject & Details</th>
-                  {isAdmin && <th className="py-3.5 px-5">Submitted By</th>}
-                  <th className="py-3.5 px-5">Priority</th>
-                  <th className="py-3.5 px-5">Status</th>
-                  <th className="py-3.5 px-5 text-right">Date</th>
-                  <th className="py-3.5 px-5 text-right">Action</th>
+                  <th scope="col" className="py-3.5 px-5">Ticket Subject & Details</th>
+                  {isAdmin && <th scope="col" className="py-3.5 px-5">Submitted By</th>}
+                  <th scope="col" className="py-3.5 px-5">Priority</th>
+                  <th scope="col" className="py-3.5 px-5">Status</th>
+                  <th scope="col" className="py-3.5 px-5 text-right">Date</th>
+                  <th scope="col" className="py-3.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/70 text-xs">
@@ -250,7 +258,7 @@ export default function HelpdeskPage() {
                   <tr key={t.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="py-4 px-5 max-w-md">
                       <div className="font-bold text-slate-100 text-sm">{t.subject}</div>
-                      <p className="text-slate-400 text-xs line-clamp-1 mt-0.5">{t.description}</p>
+                      <p className="hd-ticket-description">{t.description}</p>
                     </td>
                     {isAdmin && (
                       <td className="py-4 px-5">
@@ -263,10 +271,11 @@ export default function HelpdeskPage() {
                     <td className="py-4 px-5 text-right text-slate-400">{new Date(t.createdAt).toLocaleDateString()}</td>
                     <td className="py-4 px-5 text-right">
                       <button
+                        aria-label={`View conversation for ${t.subject}`}
                         onClick={() => handleOpenDetails(t.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 hover:border-blue-500 text-xs font-bold transition-all cursor-pointer"
+                        className="hd-view-ticket inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 hover:border-blue-500 text-xs font-bold transition-all cursor-pointer"
                       >
-                        <Icon name="chat" className="w-3.5 h-3.5" />
+                        <Icon name="eye" className="w-3.5 h-3.5" />
                         <span>View ({t._count?.responses ?? 0})</span>
                       </button>
                     </td>
@@ -276,6 +285,7 @@ export default function HelpdeskPage() {
             </table>
           </div>
         )}
+        {isAdmin && !loading && !error && <div className="hd-table-footer"><span>Showing {tickets.length} ticket{tickets.length === 1 ? '' : 's'}{search || statusFilter || priorityFilter ? ' matching your filters' : ''}</span><span>Open a thread to reply or update its status</span></div>}
       </div>
 
       {/* Create Ticket Modal */}
@@ -349,7 +359,7 @@ export default function HelpdeskPage() {
       {/* Ticket Details Modal */}
       {selectedTicketId && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh] gap-4">
+          <div role="dialog" aria-modal="true" aria-label="Ticket conversation" className="hd-dialog bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh] gap-4">
             {/* Header */}
             <div className="flex items-start justify-between border-b border-slate-800 pb-4">
               <div className="space-y-1">
@@ -365,6 +375,7 @@ export default function HelpdeskPage() {
                 )}
               </div>
               <button
+                aria-label="Close ticket conversation"
                 onClick={() => { setSelectedTicketId(null); setTicketDetails(null); }}
                 className="text-slate-400 hover:text-slate-200 p-1 rounded-lg cursor-pointer"
               >

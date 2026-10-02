@@ -3,16 +3,22 @@
  * Unified dashboard shell containing responsive sidebar, header, and content area.
  */
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
 import Sidebar from '../components/layout/Sidebar.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
 import Icon from '../components/common/Icon.jsx';
 
 export default function DashboardLayout() {
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+  const isAdminOverview = user?.role === 'SYSTEM_ADMIN' && ['/dashboard', '/users'].includes(pathname);
+  const isAdminHelpdesk = user?.role === 'SYSTEM_ADMIN' && pathname === '/helpdesk';
+  const isAdminActivity = user?.role === 'SYSTEM_ADMIN' && ['/notifications', '/audit-logs'].includes(pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="h-screen w-screen bg-slate-950 text-slate-100 flex overflow-hidden font-sans">
+    <div className={`h-screen w-screen bg-slate-950 text-slate-100 flex overflow-hidden font-sans ${isAdminOverview ? 'admin-dashboard-shell' : ''} ${isAdminHelpdesk ? 'admin-helpdesk-shell' : ''} ${isAdminActivity ? 'admin-activity-shell' : ''}`}>
       {/* Desktop Sidebar (Fixed & Stable, 100% viewport height, never scrolls away) */}
       <div className="hidden lg:flex lg:flex-shrink-0 h-screen sticky top-0 z-30">
         <Sidebar />
@@ -50,7 +56,7 @@ export default function DashboardLayout() {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <TopBar onToggleMobileMenu={() => setMobileMenuOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto px-6 py-8 sm:px-10 sm:py-9 lg:px-12 lg:py-10 bg-slate-950">
+        <main className={`flex-1 overflow-y-auto px-6 py-8 sm:px-10 sm:py-9 lg:px-12 lg:py-10 ${isAdminOverview ? 'bg-[#f5f7fb]' : 'bg-slate-950'}`}>
           <div className="max-w-[1550px] w-full mx-auto pb-16">
             <Outlet />
           </div>

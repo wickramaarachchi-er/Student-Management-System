@@ -9,6 +9,8 @@ import {
   markAsReadRequest,
   markAllAsReadRequest,
 } from '../services/notification.service.js';
+import { useAuth } from '../hooks/useAuth.js';
+import './AdminActivityPages.css';
 import Icon from '../components/common/Icon.jsx';
 import PageHeader from '../components/common/PageHeader.jsx';
 import LoadingState from '../components/common/LoadingState.jsx';
@@ -27,6 +29,8 @@ const TYPE_META = {
 };
 
 export default function NotificationsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'SYSTEM_ADMIN';
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -68,7 +72,7 @@ export default function NotificationsPage() {
       const res = await markAsReadRequest(id);
       if (res.ok && res.data?.success) {
         setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+          filterRead === 'false' ? prev.filter(n => n.id !== id) : prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
         );
         setUnreadCount((prev) => Math.max(0, prev - 1));
       }
@@ -82,7 +86,7 @@ export default function NotificationsPage() {
     try {
       const res = await markAllAsReadRequest();
       if (res.ok && res.data?.success) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        setNotifications((prev) => filterRead === 'false' ? [] : prev.map((n) => ({ ...n, isRead: true })));
         setUnreadCount(0);
       }
     } catch {
@@ -93,9 +97,9 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={isAdmin ? "admin-activity notifications-centre" : "space-y-6"}>
       <PageHeader
-        title="Notifications Centre"
+        title="Notifications"
         description="System alerts, policy update notices, training assignments, and helpdesk status updates."
         icon="bell"
         action={
@@ -114,7 +118,7 @@ export default function NotificationsPage() {
 
       {/* Unread Badge Summary */}
       {unreadCount > 0 && (
-        <div className="bg-blue-950/40 border border-blue-800/60 rounded-xl px-5 py-3.5 flex items-center gap-3 text-sm">
+        <div className="activity-unread-summary bg-blue-950/40 border border-blue-800/60 rounded-xl px-5 py-3.5 flex items-center gap-3 text-sm">
           <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
           <span className="font-bold text-blue-200">
             {unreadCount} unread {unreadCount === 1 ? 'notification' : 'notifications'}
@@ -124,13 +128,13 @@ export default function NotificationsPage() {
       )}
 
       {/* Filter Tabs + Notification List */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="activity-card bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
         {/* Filter Tabs */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between flex-wrap gap-3">
+        <div className="activity-card-heading px-6 py-4 border-b border-slate-800 flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
-            Notification History
+            Notification history
           </h2>
-          <div className="flex items-center gap-2 text-xs">
+          <div className="notification-filters flex items-center gap-2 text-xs" role="group" aria-label="Filter notifications">
             {[
               { value: '', label: 'All' },
               { value: 'false', label: 'Unread' },
@@ -138,6 +142,7 @@ export default function NotificationsPage() {
             ].map((tab) => (
               <button
                 key={tab.value}
+                aria-pressed={filterRead === tab.value}
                 onClick={() => setFilterRead(tab.value)}
                 className={`px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                   filterRead === tab.value
@@ -175,21 +180,21 @@ export default function NotificationsPage() {
                 <div
                   key={n.id}
                   onClick={() => !n.isRead && handleMarkOneRead(n.id)}
-                  className={`p-5 flex items-start justify-between gap-4 transition-all ${
+                  className={`notification-row ${n.isRead ? "notification-read" : "notification-unread"} p-5 flex items-start justify-between gap-4 transition-all ${
                     n.isRead
                       ? 'bg-transparent hover:bg-slate-800/20'
                       : 'bg-blue-950/20 hover:bg-blue-950/30 cursor-pointer border-l-2 border-blue-500'
                   }`}
                 >
-                  <div className="flex items-start gap-4 min-w-0">
+                  <div className="notification-content flex items-start gap-4 min-w-0">
                     {/* Type Icon */}
-                    <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${meta.color}`}>
+                    <div className={`notification-icon w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${meta.color}`}>
                       <Icon name={meta.icon} className="w-5 h-5" />
                     </div>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${meta.color}`}>
+                    <div className="notification-copy min-w-0 flex-1">
+                      <div className="notification-title flex items-center gap-2 flex-wrap mb-1">
+                        <span className={`notification-category text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${meta.color}`}>
                           {meta.label}
                         </span>
                         <h4 className={`text-sm font-bold truncate ${n.isRead ? 'text-slate-300' : 'text-slate-100'}`}>
@@ -212,7 +217,8 @@ export default function NotificationsPage() {
                         e.stopPropagation();
                         handleMarkOneRead(n.id);
                       }}
-                      className="px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-blue-600 hover:border-blue-500 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all shrink-0 cursor-pointer"
+                      aria-label={`Mark ${n.title} as read`}
+                      className="notification-mark-read px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-blue-600 hover:border-blue-500 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all shrink-0 cursor-pointer"
                     >
                       Mark Read
                     </button>
@@ -222,6 +228,7 @@ export default function NotificationsPage() {
             })}
           </div>
         )}
+        {isAdmin && !loading && !error && <div className="activity-footer">Showing {notifications.length} notification{notifications.length === 1 ? '' : 's'} in this view</div>}
       </div>
     </div>
   );
