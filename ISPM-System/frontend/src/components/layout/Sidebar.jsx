@@ -1,74 +1,100 @@
 /**
  * components/layout/Sidebar.jsx
- * Role-aware navigation sidebar with enterprise security aesthetic.
+ * Enterprise-grade Information Security Policy & Management System (ISPM) navigation sidebar.
  */
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
-import { ROLE_LABELS, ROLE_NAV_ITEMS, ROLE_BADGE_STYLES } from '../../utils/roles.js';
+import { ROLE_NAV_ITEMS, ROLE_LABELS } from '../../utils/roles.js';
 import Icon from '../common/Icon.jsx';
 
 export default function Sidebar({ onItemClick }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const navItems = (user?.role && ROLE_NAV_ITEMS[user.role]) || [];
-  const roleLabel = (user?.role && ROLE_LABELS[user.role]) || user?.role || 'User';
-  const roleBadgeStyle = (user?.role && ROLE_BADGE_STYLES[user.role]) || 'bg-slate-800 text-slate-300 border-slate-700';
+  const roleLabel = (user?.role && ROLE_LABELS[user.role]) || 'User';
+  const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User' : 'User';
+  const initials = `${user?.firstName?.charAt(0) || 'U'}${user?.lastName?.charAt(0) || ''}`;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-full select-none">
-      {/* Brand Header */}
-      <div className="h-16 flex items-center gap-3 px-5 border-b border-slate-800 bg-slate-900/90">
-        <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-900/40 shrink-0">
+    <aside className="w-[260px] bg-slate-950 border-r border-slate-800 flex flex-col h-full select-none">
+      {/* Brand / Logo Area */}
+      <div className="h-20 flex items-center gap-3.5 px-5 border-b border-slate-800/80 shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-950/40 shrink-0">
           <Icon name="shield" className="w-5 h-5 text-white" />
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="font-bold text-sm text-slate-100 tracking-tight leading-snug truncate">ISPM Enterprise</span>
-          <span className="text-[11px] text-slate-400 font-medium leading-tight truncate">Policy & Compliance</span>
+          <span className="font-bold text-[17px] text-white tracking-tight leading-tight truncate">
+            ISPM
+          </span>
+          <span className="text-xs text-slate-400 font-normal leading-tight truncate mt-0.5">
+            Security & Compliance
+          </span>
         </div>
       </div>
 
-      {/* Role Indicator Card */}
-      <div className="p-4 border-b border-slate-800/80 bg-slate-950/40">
-        <div className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-1.5">
-          Active Workspace
-        </div>
-        <div className={`text-xs px-3 py-1.5 rounded-lg border font-semibold inline-flex items-center gap-1.5 w-full justify-center ${roleBadgeStyle}`}>
-          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
-          {roleLabel}
-        </div>
-      </div>
-
-      {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        <div className="px-3 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-          Main Navigation
-        </div>
+      {/* Navigation List */}
+      <nav aria-label="Sidebar Navigation" className="flex-1 overflow-y-auto px-3.5 pt-5 pb-4 space-y-1.5">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             onClick={onItemClick}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              `group relative flex items-center gap-3 px-3.5 h-11 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
                 isActive
-                  ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-950 border border-blue-500/30'
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                  ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
+                  : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100 border border-transparent'
               }`
             }
           >
-            <Icon name={item.icon} className="w-4 h-4 flex-shrink-0" />
-            <span className="truncate flex-1">{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <span
+                  className={`w-5 h-5 flex items-center justify-center shrink-0 transition-colors ${
+                    isActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'
+                  }`}
+                >
+                  <Icon name={item.icon} className="w-[18px] h-[18px]" />
+                </span>
+                <span className="truncate flex-1">{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
-      </div>
+      </nav>
 
-      {/* Footer Status */}
-      <div className="p-4 border-t border-slate-800 bg-slate-950/50 text-xs text-slate-400 flex items-center justify-between">
-        <span className="flex items-center gap-2 font-medium">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          System Operational
-        </span>
-        <span className="text-[11px] font-mono text-slate-500 bg-slate-800/60 px-2 py-0.5 rounded border border-slate-700/50">v1.0</span>
+      {/* Bottom User Account & Sign Out Area */}
+      <div className="p-4 border-t border-slate-800/80 shrink-0 bg-slate-950">
+        <div className="flex items-center gap-3 px-1">
+          <div className="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-300 font-semibold text-xs flex items-center justify-center shadow-inner shrink-0">
+            {initials}
+          </div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-medium text-slate-200 truncate leading-snug">
+              {fullName}
+            </span>
+            <span className="text-xs text-slate-500 truncate leading-tight mt-0.5">
+              {roleLabel}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full h-10 px-3 rounded-lg text-sm font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-colors flex items-center gap-2.5 mt-3 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+        >
+          <Icon name="logout" className="w-4 h-4 shrink-0" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </aside>
   );
 }
+
+

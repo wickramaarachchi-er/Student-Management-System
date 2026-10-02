@@ -60,25 +60,25 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-5 sm:p-8 lg:p-12 relative overflow-hidden font-sans select-none sm:select-auto">
       {/* Background Decorative Security Treatments */}
-      <div 
-        aria-hidden="true" 
-        className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" 
+      <div
+        aria-hidden="true"
+        className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"
       />
-      <div 
-        aria-hidden="true" 
-        className="absolute top-1/2 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" 
+      <div
+        aria-hidden="true"
+        className="absolute top-1/2 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"
       />
-      <div 
-        aria-hidden="true" 
-        className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" 
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none"
       />
 
       <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 xl:gap-16 items-center relative z-10 py-8 sm:py-12 my-auto">
-        
+
         {/* ============================================================
             LEFT SIDE: Product Introduction & Capabilities (Preserved)
             ============================================================ */}
-        <section 
+        <section
           aria-label="Product Information"
           className="lg:col-span-7 flex flex-col justify-center space-y-6 sm:space-y-8 lg:pr-4"
         >
@@ -157,14 +157,15 @@ export default function LoginPage() {
         {/* ============================================================
             RIGHT SIDE: Clean, Spacious, Normal-Spread Login Card
             ============================================================ */}
-        <section 
+        <section
           aria-label="User Authentication"
           className="lg:col-span-5 flex justify-center w-full"
         >
-          <div className="w-full max-w-[460px] bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl p-8 sm:p-10 backdrop-blur-xl">
-            
+          <div className="w-full max-w-[470px] bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl p-8 sm:p-10 backdrop-blur-xl">
+
             {/* Top Security Icon */}
             <div className="flex justify-center mb-6">
+              
               <div className="w-16 h-16 rounded-2xl bg-blue-600/15 border border-blue-500/25 flex items-center justify-center text-blue-400 shadow-xl shadow-blue-950/40">
                 <Icon name="lock" className="w-8 h-8" />
               </div>
@@ -172,18 +173,19 @@ export default function LoginPage() {
 
             {/* Title Section with 32px bottom space */}
             <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-[30px] font-bold text-white tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-[30px] font-bold text-white tracking-tight leading-tight"><br></br>
                 Welcome back
               </h2>
               <p className="text-sm sm:text-base text-slate-400 mt-2 font-normal">
-                Sign in to access your ISPM account
+                Sign in to access your ISPM account<br></br>
+                <br></br>
               </p>
             </div>
 
             {/* Error Message Alert */}
             {errorMessage && (
-              <div 
-                role="alert" 
+              <div
+                role="alert"
                 className="mb-6 p-4 rounded-xl bg-rose-950/50 border border-rose-800/70 text-rose-200 text-xs sm:text-sm flex items-start gap-3 animate-in fade-in duration-200"
               >
                 <Icon name="close" className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
@@ -193,11 +195,11 @@ export default function LoginPage() {
 
             {/* Main Form with Explicit space-y-6 */}
             <form onSubmit={handleSubmit} noValidate className="flex flex-col space-y-6">
-              
+
               {/* Form Group 1: Email Address */}
               <div className="flex flex-col">
-                <label 
-                  htmlFor="email" 
+                <label
+                  htmlFor="email"
                   className="block text-sm font-medium text-slate-200 mb-2"
                 >
                   Email address
@@ -214,23 +216,22 @@ export default function LoginPage() {
                       setEmail(e.target.value);
                       if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: '' });
                     }}
-                    className={`w-full h-12 px-4 rounded-xl text-slate-100 text-base bg-slate-950/80 border transition-all placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
-                      fieldErrors.email 
-                        ? 'border-rose-500 focus:ring-rose-500/40' 
-                        : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500/30'
-                    }`}
+                    className={`w-full h-12 px-4 rounded-xl text-slate-100 text-base bg-slate-950/80 border transition-all placeholder:text-slate-500 focus:outline-none focus:ring-2 ${fieldErrors.email
+                      ? 'border-rose-500 focus:ring-rose-500/40'
+                      : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500/30'
+                      }`}
                     placeholder="name@university.edu"
                   />
                 </div>
                 {fieldErrors.email && (
                   <p className="mt-1.5 text-xs text-rose-400 font-medium pl-1">{fieldErrors.email}</p>
                 )}
-              </div>
+              </div><br></br>
 
               {/* Form Group 2: Password */}
               <div className="flex flex-col">
-                <label 
-                  htmlFor="password" 
+                <label
+                  htmlFor="password"
                   className="block text-sm font-medium text-slate-200 mb-2"
                 >
                   Password
@@ -247,11 +248,10 @@ export default function LoginPage() {
                       setPassword(e.target.value);
                       if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' });
                     }}
-                    className={`w-full h-12 px-4 pr-12 rounded-xl text-slate-100 text-base bg-slate-950/80 border transition-all placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
-                      fieldErrors.password 
-                        ? 'border-rose-500 focus:ring-rose-500/40' 
-                        : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500/30'
-                    }`}
+                    className={`w-full h-12 px-4 pr-12 rounded-xl text-slate-100 text-base bg-slate-950/80 border transition-all placeholder:text-slate-500 focus:outline-none focus:ring-2 ${fieldErrors.password
+                      ? 'border-rose-500 focus:ring-rose-500/40'
+                      : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500/30'
+                      }`}
                     placeholder="Enter your password"
                   />
                   <button
@@ -259,7 +259,7 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer transition-colors"
-                  >
+                  ><br></br>
                     <Icon name={showPassword ? 'eye-off' : 'eye'} className="w-5 h-5" />
                   </button>
                 </div>
@@ -269,7 +269,7 @@ export default function LoginPage() {
               </div>
 
               {/* Primary Action Button */}
-              <div className="pt-2">
+              <div className="pt-2"><br></br>
                 <button
                   type="submit"
                   disabled={isSubmitting}

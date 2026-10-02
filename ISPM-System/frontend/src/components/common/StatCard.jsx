@@ -25,33 +25,34 @@ export default function StatCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700/80 transition-all ${
-        onClick ? 'cursor-pointer hover:bg-slate-850' : ''
+      className={`bg-slate-900/90 border border-slate-800/90 rounded-2xl p-6 shadow-md hover:border-slate-700 transition-all flex flex-col justify-between min-h-[135px] ${
+        onClick ? 'cursor-pointer hover:bg-slate-900' : ''
       }`}
     >
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{title}</span>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span className="text-sm font-medium text-slate-400 block">{title}</span>
+          <div className="text-3xl font-extrabold text-white tracking-tight mt-2">
+            {value ?? '0'}
+          </div>
+        </div>
         {icon && (
-          <div className={`p-2.5 rounded-lg border flex items-center justify-center shrink-0 ${iconBg}`}>
+          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${iconBg}`}>
             <Icon name={icon} className="w-5 h-5" />
           </div>
         )}
       </div>
 
-      <div className="flex items-baseline justify-between gap-2">
-        <div className="text-3xl font-extrabold text-slate-100 tracking-tight">{value ?? '0'}</div>
-        {badge && (
-          <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-blue-950/60 text-blue-300 border-blue-800/50">
-            {badge}
-          </span>
-        )}
-      </div>
-
-      {(subtitle || trend) && (
-        <div className="mt-3 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-          {subtitle && <span className="text-slate-400 font-medium">{subtitle}</span>}
+      {(subtitle || trend || badge) && (
+        <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500 gap-2">
+          {subtitle && <span className="text-slate-400 font-medium truncate">{subtitle}</span>}
+          {badge && (
+            <span className="text-xs px-2 py-0.5 rounded-full border font-medium bg-blue-950/60 text-blue-300 border-blue-800/50 shrink-0">
+              {badge}
+            </span>
+          )}
           {trend && (
-            <span className={`px-2 py-0.5 rounded border text-[11px] font-semibold ${trendColors[trendType]}`}>
+            <span className={`px-2 py-0.5 rounded border text-[11px] font-semibold shrink-0 ${trendColors[trendType]}`}>
               {trend}
             </span>
           )}
@@ -60,3 +61,5 @@ export default function StatCard({
     </div>
   );
 }
+
+
