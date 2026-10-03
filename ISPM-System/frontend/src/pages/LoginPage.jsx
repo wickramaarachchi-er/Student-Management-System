@@ -1,8 +1,8 @@
 /**
  * pages/LoginPage.jsx
- * Login page for ISPM.
+ * Sign in to the CyberShield security and compliance workspace.
  */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import Icon from '../components/common/Icon.jsx';
@@ -13,6 +13,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,11 +35,14 @@ export default function LoginPage() {
     }
 
     setFieldErrors(errors);
+    if (errors.email) emailRef.current?.focus();
+    else if (errors.password) passwordRef.current?.focus();
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setErrorMessage('');
 
     if (!validateForm()) return;
@@ -61,81 +66,117 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <div className="login-shell">
-        <aside className="login-identity" aria-label="ISPM">
-          <div className="login-brand"><span className="login-brand-mark"><Icon name="shield-check" aria-hidden="true" /></span><span>ISPM</span></div>
-          <div className="login-emblem" aria-hidden="true">
-            <div className="login-emblem-ring login-emblem-ring-outer" />
-            <div className="login-emblem-ring login-emblem-ring-inner" />
-            <div className="login-emblem-shield"><Icon name="shield-check" /></div>
+        <section aria-label="Product information" className="login-story">
+          <div className="login-brand">
+            <span className="login-brand-mark"><Icon name="shield" aria-hidden="true" /></span>
+            <div><strong>CyberShield</strong><span>Security &amp; compliance</span></div>
           </div>
-          <p className="login-system-name">Information Security<br />Policy &amp; Management</p>
-        </aside>
-        <section className="login-card" aria-labelledby="login-title">
-          <h1 id="login-title">Welcome back</h1>
-          {errorMessage && <p role="alert" className="login-error">{errorMessage}</p>}
-          <form onSubmit={handleSubmit} noValidate className="login-form" aria-busy={isSubmitting}>
-            <div className="login-field">
-              <label htmlFor="email">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="username"
-                inputMode="email"
-                autoCapitalize="none"
-                spellCheck={false}
-                required
-                disabled={isSubmitting}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: '' });
-                }}
-                aria-invalid={Boolean(fieldErrors.email)}
-                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-                placeholder="name@organization.com"
-              />
-              {fieldErrors.email && <p id="email-error" role="alert" className="login-field-error">{fieldErrors.email}</p>}
-            </div>
+          <div className="login-story-content">
+            <h1>Security &amp; compliance</h1>
+            <p className="login-story-description">Sign in to access your organization’s policies, training, and compliance records.</p>
+          </div>
+        </section>
 
-            <div className="login-field">
-              <label htmlFor="password">Password</label>
-              <div className="login-password-wrap">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  disabled={isSubmitting}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' });
-                  }}
-                  aria-invalid={Boolean(fieldErrors.password)}
-                  aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isSubmitting}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  aria-pressed={showPassword}
-                  aria-controls="password"
-                  className="login-password-toggle"
-                >
-                  <Icon name={showPassword ? 'eye-off' : 'eye'} aria-hidden="true" />
-                </button>
+        <section aria-labelledby="login-title" className="login-form-panel">
+          <div className="login-form-content">
+            <h2 id="login-title">Sign in</h2>
+            <p className="login-form-description">Use your organization account to continue.</p>
+
+            {/* Error Message Alert */}
+            {errorMessage && (
+              <div
+                role="alert"
+                className="login-error"
+              >
+                <Icon name="close" className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <span className="flex-1 font-medium">{errorMessage}</span>
               </div>
-              {fieldErrors.password && <p id="password-error" role="alert" className="login-field-error">{fieldErrors.password}</p>}
-            </div>
+            )}
 
-            <button type="submit" disabled={isSubmitting} className="login-submit">
-              {isSubmitting ? <><span className="login-spinner" aria-hidden="true" /> Signing in...</> : <>Sign in</>}
-            </button>
-          </form>
+            {/* Sign-in form */}
+            <form onSubmit={handleSubmit} noValidate className="login-form" aria-busy={isSubmitting}>
+
+              {/* Form Group 1: Email Address */}
+              <div className="login-field">
+                <label htmlFor="email">
+                  Email address
+                </label>
+                <div>
+                  <input
+                    ref={emailRef}
+                    aria-invalid={Boolean(fieldErrors.email)}
+                    aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                    required
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    disabled={isSubmitting}
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setFieldErrors((errors) => ({ ...errors, email: '' }));
+                      setErrorMessage('');
+                    }}
+
+                    placeholder="name@university.edu"
+                  />
+                </div>
+                {fieldErrors.email && (
+                  <p id="email-error" className="login-field-error" role="alert">{fieldErrors.email}</p>
+                )}
+              </div>
+
+              {/* Form Group 2: Password */}
+              <div className="login-field">
+                <label htmlFor="password">
+                  Password
+                </label>
+                <div className="login-password-wrap">
+                  <input
+                    ref={passwordRef}
+                    aria-invalid={Boolean(fieldErrors.password)}
+                    aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+                    required
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    disabled={isSubmitting}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setFieldErrors((errors) => ({ ...errors, password: '' }));
+                      setErrorMessage('');
+                    }}
+
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    aria-pressed={showPassword}
+                    aria-controls="password"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="login-password-toggle"
+                  >
+                    <Icon name={showPassword ? 'eye-off' : 'eye'} className="w-5 h-5" />
+                  </button>
+                </div>
+                {fieldErrors.password && (
+                  <p id="password-error" className="login-field-error" role="alert">{fieldErrors.password}</p>
+                )}
+              </div>
+
+              <button type="submit" disabled={isSubmitting} className="login-submit">
+                {isSubmitting ? <><span className="login-spinner" aria-hidden="true" /> Signing in...</> : <>Sign in to workspace <span aria-hidden="true">&rarr;</span></>}
+              </button>
+            </form>
+            <p className="login-account-help">Need an account? Contact your system administrator.</p>
+          </div>
         </section>
       </div>
     </main>

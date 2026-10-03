@@ -15,6 +15,7 @@ import LoadingState from '../components/common/LoadingState.jsx';
 import ErrorState from '../components/common/ErrorState.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import EmployeeEvidenceModal from '../components/compliance/EmployeeEvidenceModal.jsx';
+import './ComplianceDashboardPage.css';
 
 const INPUT_CLASS = 'px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30';
 
@@ -73,21 +74,27 @@ export default function ComplianceDashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="org-compliance space-y-6">
       <PageHeader
         title="Organization Compliance Dashboard"
         description="Monitor employee information-security compliance derived from live policy acknowledgements, training completions, and quiz scores."
         icon="award"
         action={
-          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-right shrink-0">
+          <>
+          <div className="org-rate-card bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-right shrink-0">
             <div className="text-2xl font-extrabold text-slate-100">{summary.averageCompliancePercentage}%</div>
             <div className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Org Compliance Rate</div>
           </div>
+          <button type="button" className="org-refresh" onClick={fetchDashboardAndEmployees} disabled={loading} aria-label="Refresh organization compliance data">
+            <Icon name="refresh" className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+          </>
         }
       />
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div className="org-kpis grid grid-cols-2 sm:grid-cols-5 gap-4">
         <StatCard title="Monitored Employees" value={summary.totalEmployees} icon="users" />
         <StatCard title="Fully Compliant" value={summary.fullyCompliantCount} icon="shield-check"
           iconBg="bg-emerald-500/10 text-emerald-400 border-emerald-500/20" trend="100%" trendType="positive" />
@@ -100,7 +107,7 @@ export default function ComplianceDashboardPage() {
       </div>
 
       {/* Category Progress */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+      <div className="org-progress-card bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
         <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider mb-4 pb-2 border-b border-slate-800">
           Compliance Progress by Requirement Pillar
         </h2>
@@ -130,16 +137,21 @@ export default function ComplianceDashboardPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-sm">
-        <div className="relative flex-1">
-          <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="org-filter-card bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-sm">
+        <div className="org-search-field">
+          <label htmlFor="employee-compliance-search">Search employees</label>
+          <div className="org-search-box">
+            <Icon name="search" className="w-4 h-4" aria-hidden="true" />
           <input
-            type="text"
+            id="employee-compliance-search"
+            type="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search employees by name, email, or department..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+            placeholder="Name, email, or department"
+            aria-controls="employee-compliance-roster"
           />
+          {searchTerm && <button type="button" onClick={() => setSearchTerm('')} aria-label="Clear employee search"><Icon name="close" className="w-4 h-4" /></button>}
+          </div>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
@@ -166,8 +178,8 @@ export default function ComplianceDashboardPage() {
       </div>
 
       {/* Employee Roster Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-3.5 border-b border-slate-800">
+      <div className="org-roster bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm" id="employee-compliance-roster">
+        <div className="org-roster-heading px-6 py-3.5 border-b border-slate-800">
           <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Employee Compliance Roster</h2>
         </div>
 

@@ -12,6 +12,11 @@
 .admin-helpdesk > div:first-child h1 { color: #17243b; font-size: 30px; letter-spacing: -1px; }
 .admin-helpdesk > div:first-child p { color: #64748b; font-size: 13px; }
 .admin-helpdesk > div:first-child [class*="bg-blue"] { background: #eef2ff; color: #6366f1; border-color: #e0e7ff; }
+.admin-helpdesk .hd-page-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.admin-helpdesk .hd-page-header > div { grid-column: 2; text-align: center; }
+.admin-helpdesk .hd-page-header h1 { color: #f8fafc; }
+.admin-helpdesk .hd-page-header p { color: #52677f; }
+.admin-helpdesk .hd-page-header .hd-refresh { grid-column: 3; justify-self: end; }
 .hd-refresh { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 10px; background: #6366f1; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
 .hd-refresh:hover:not(:disabled) { background: #4f46e5; }
 .admin-helpdesk button:disabled { opacity: .5; cursor: not-allowed; }
@@ -86,3 +91,7 @@
 
 @media (max-width: 1280px) { .hd-stat p { font-size: 11px; } .hd-stat { padding: 16px; gap: 10px; } }
 @media (max-width: 760px) { .admin-helpdesk-shell main { padding: 24px 16px; } .hd-page-header { align-items: flex-start; flex-direction: column; gap: 16px; } .hd-overview { grid-template-columns: 1fr; } .hd-stat { padding: 16px 20px; } .hd-stat p { font-size: 12px; } .admin-helpdesk { gap: 20px; } }
+@media (max-width: 760px) {
+  .admin-helpdesk .hd-page-header { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .admin-helpdesk .hd-page-header .hd-refresh { align-self: center; }
+}

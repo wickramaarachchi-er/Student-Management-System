@@ -81,7 +81,7 @@
 .admin-dashboard-page{color:#17243b}
 .admin-page-header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:28px}
 .admin-page-header .admin-eyebrow{color:#6366f1;letter-spacing:1.5px}
-.admin-page-header h1{font-size:30px;font-weight:700;letter-spacing:-1px;margin:8px 0}
+.admin-page-header h1{font-size:30px;font-weight:700;letter-spacing:-1px;margin:8px 0;color:#f8fafc}
 .admin-page-header p{font-size:13px;color:#64748b}
 .admin-header-actions{display:flex;align-items:center;gap:12px}
 .admin-header-date{font-size:11px;color:#8290a5}

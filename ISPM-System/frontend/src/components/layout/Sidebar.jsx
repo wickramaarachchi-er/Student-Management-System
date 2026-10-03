@@ -29,11 +29,42 @@ export default function Sidebar({ onItemClick }) {
 
     return (
       <aside className="admin-sidebar" aria-label="Administration sidebar">
-        <Link to="/dashboard" onClick={onItemClick} className="admin-sidebar-brand" aria-label="ISPM dashboard">
+        <Link to="/dashboard" onClick={onItemClick} className="admin-sidebar-brand" aria-label="CyberShield dashboard">
           <span className="admin-sidebar-logo"><Icon name="shield" className="w-6 h-6" /></span>
-          <span><strong>ISPM<span className="admin-brand-dot">.</span></strong><small>Security &amp; Compliance</small></span>
+          <span><strong>CyberShield</strong><small>Security &amp; Compliance</small></span>
         </Link>
         <div className="admin-sidebar-workspace"><span className="admin-workspace-emblem"><Icon name="lock" className="w-4 h-4" /></span><div><strong>Administration</strong><span>System administrator</span></div></div>
+        <nav className="admin-sidebar-nav" aria-label="Sidebar Navigation">
+          {groups.map((group) => <div className="admin-nav-group" key={group.title}>
+            <h2>{group.title}</h2>
+            {navItems.filter((item) => group.paths.includes(item.path)).map((item) => (
+              <NavLink key={item.path} to={item.path} onClick={onItemClick} className={({ isActive }) => `admin-nav-item${isActive ? ' is-active' : ''}`}>
+                {({ isActive }) => <><Icon name={item.icon} className="w-[18px] h-[18px]" /><span>{item.label}</span>{isActive && <span className="admin-nav-indicator" aria-hidden="true" />}</>}
+              </NavLink>
+            ))}
+          </div>)}
+        </nav>
+        <div className="admin-sidebar-account">
+          <div className="admin-sidebar-profile"><span className="admin-sidebar-avatar">{initials}</span><div><strong title={fullName}>{fullName}</strong><small title={user?.email}>{user?.email || roleLabel}</small></div></div>
+          <button type="button" onClick={handleLogout} className="admin-sidebar-signout"><Icon name="logout" className="w-4 h-4" /><span>Sign out</span><span aria-hidden="true">&#8594;</span></button>
+        </div>
+      </aside>
+    );
+  }
+
+  if (user?.role === 'COMPLIANCE_OFFICER') {
+    const groups = [
+      { title: 'Workspace', paths: ['/dashboard', '/policies', '/compliance', '/reports'] },
+      { title: 'Operations', paths: ['/audit-logs', '/notifications'] },
+    ];
+
+    return (
+      <aside className="admin-sidebar" aria-label="Compliance officer sidebar">
+        <Link to="/dashboard" onClick={onItemClick} className="admin-sidebar-brand" aria-label="CyberShield dashboard">
+          <span className="admin-sidebar-logo"><Icon name="shield" className="w-6 h-6" /></span>
+          <span><strong>CyberShield</strong><small>Security &amp; Compliance</small></span>
+        </Link>
+        <div className="admin-sidebar-workspace"><span className="admin-workspace-emblem"><Icon name="shield-check" className="w-4 h-4" /></span><div><strong>Compliance</strong><span>Compliance officer</span></div></div>
         <nav className="admin-sidebar-nav" aria-label="Sidebar Navigation">
           {groups.map((group) => <div className="admin-nav-group" key={group.title}>
             <h2>{group.title}</h2>
@@ -61,7 +92,7 @@ export default function Sidebar({ onItemClick }) {
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-extrabold text-[17px] text-white tracking-tight leading-tight truncate">
-            ISPM
+            CyberShield
           </span>
           <span className="text-xs text-slate-400 font-normal leading-tight truncate mt-0.5">
             Security & Compliance

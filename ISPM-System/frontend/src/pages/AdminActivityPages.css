@@ -87,3 +87,26 @@
 .audit-pagination button { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; color: #475569; background: #f8fafc; font-size: 12px; }
 .audit-pagination button:hover:not(:disabled) { background: #eef2ff; color: #4f46e5; border-color: #e0e7ff; }
 @media (max-width: 760px) { .admin-activity-shell main { padding: 24px 16px; } .admin-activity { gap: 20px; } .admin-activity > div:first-child { align-items: flex-start; flex-direction: column; gap: 16px; } .admin-activity > div:first-child h1 { font-size: 26px; } .audit-filter-grid { grid-template-columns: 1fr; } .admin-activity .audit-filters { padding: 20px; } .admin-activity .notification-row { flex-direction: column; gap: 14px; padding: 20px 16px; } .admin-activity .notification-mark-read { margin-left: 56px; } .admin-activity .activity-card-heading { padding: 20px 16px; } }
+
+/* Center and strengthen administrator page titles on the light dashboard theme. */
+.admin-activity > div:first-child { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.admin-activity > div:first-child > div:first-child { grid-column: 2; justify-content: center; }
+.admin-activity > div:first-child > div:first-child > div:last-child { text-align: center; }
+.admin-activity > div:first-child h1 { color: #f8fafc; }
+.admin-activity > div:first-child p { color: #52677f; }
+.admin-activity > div:first-child > div:last-child { grid-column: 3; justify-self: end; }
+@media (max-width: 760px) {
+  .admin-activity > div:first-child { display: flex; flex-direction: column; align-items: center; }
+  .admin-activity > div:first-child > div:first-child { align-items: center; }
+  .admin-activity > div:first-child > div:last-child { align-self: center; }
+}
+
+/* Keep the notifications page heading aligned with the content column. */
+.notifications-centre > div:first-child { display: flex; align-items: center; justify-content: space-between; }
+.notifications-centre > div:first-child > div:first-child { justify-content: flex-start; }
+.notifications-centre > div:first-child > div:first-child > div:last-child { text-align: left; }
+@media (max-width: 760px) {
+  .notifications-centre > div:first-child { align-items: flex-start; }
+  .notifications-centre > div:first-child > div:first-child { align-items: flex-start; }
+  .notifications-centre > div:first-child > div:last-child { align-self: flex-start; }
+}

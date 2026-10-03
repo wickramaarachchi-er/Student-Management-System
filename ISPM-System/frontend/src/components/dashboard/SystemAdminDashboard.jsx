@@ -73,7 +73,7 @@ export default function SystemAdminDashboard({ data }) {
           {recentSystemActivity.length ? <ol className="admin-activity">{recentSystemActivity.slice(0, 5).map((event) => <li key={event.id}><span className={`admin-event-dot ${event.action?.includes('FAILED') ? 'failed' : ''}`} /><div><div className="admin-event-title"><h3>{readable(event.action || 'System event')}</h3><time dateTime={event.createdAt}>{dateLabel(event.createdAt)}</time></div><p>{event.description || 'System event recorded'}</p><small>{event.userEmail || 'System'}</small></div></li>)}</ol> : <div className="admin-empty"><Icon name="shield-check" className="w-8 h-8" /><h3>No recent activity</h3><p>Recorded system events will appear here.</p></div>}
         </section>
       </div>
-      <div className="admin-footer"><span>ISPM / Administration overview</span><span>Account access · Support · Audit trail</span></div>
+      <div className="admin-footer"><span>CyberShield / Administration overview</span><span>Account access · Support · Audit trail</span></div>
     </div>
   );
 }

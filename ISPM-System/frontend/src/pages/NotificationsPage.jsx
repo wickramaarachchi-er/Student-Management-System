@@ -33,8 +33,7 @@ const TYPE_META = {
 export default function NotificationsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'SYSTEM_ADMIN';
-  const isTrainingAdmin = user?.role === 'TRAINING_ADMIN';
-  const isEmployee = user?.role === 'EMPLOYEE';
+  const isComplianceOfficer = user?.role === 'COMPLIANCE_OFFICER';
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -114,14 +113,8 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className={isEmployee ? 'training-notifications employee-notifications' : isTrainingAdmin ? 'training-notifications' : isAdmin ? "admin-activity notifications-centre" : "space-y-6"}>
-      {isTrainingAdmin || isEmployee ? <header className="training-notifications-header">
-        <div><span className="training-notifications-eyebrow">{isEmployee ? 'MY WORKSPACE / NOTIFICATIONS' : 'TRAINING / NOTIFICATIONS'}</span><h1>{isEmployee ? 'My notifications' : 'Notification centre'}</h1><p>{isEmployee ? 'Keep up with policy reminders, training updates, and support replies.' : 'Stay up to date with training assignments, quiz results, and system updates.'}</p></div>
-        <div className="training-notifications-actions">
-          <button type="button" className="training-notifications-refresh" onClick={fetchNotificationsData} disabled={loading || markingAll || Boolean(markingId)}><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh'}</button>
-          {unreadCount > 0 && <button type="button" className="training-notifications-primary" onClick={handleMarkAllRead} disabled={markingAll || loading || Boolean(markingId)}><Icon name="check" className="w-4 h-4" />{markingAll ? 'Updating...' : 'Mark all as read'}</button>}
-        </div>
-      </header> : <PageHeader
+    <div className={isAdmin || isComplianceOfficer ? "admin-activity notifications-centre" : "space-y-6"}>
+      <PageHeader
         title="Notifications"
         description="System alerts, policy update notices, training assignments, and helpdesk status updates."
         icon="bell"

@@ -1,0 +1,202 @@
+/* Match the Compliance Officer overview: dark canvas, white rounded cards,
+   restrained slate text, and indigo/teal status accents. */
+.compliance-workspace-main { background: #030712; padding: 0; }
+.compliance-officer-pages { color: #17243b; font-size: 14px; }
+.compliance-workspace-main > .compliance-officer-pages { max-width: none; padding: 0 8px 36px 0; }
+.compliance-officer-pages > * { gap: 24px; }
+.compliance-officer-pages h1 { color: #f8fafc; font-size: 25px; font-weight: 650; letter-spacing: -.6px; }
+.compliance-officer-pages h2 { color: #17243b; font-size: 16px; font-weight: 650; letter-spacing: -.3px; }
+.compliance-officer-pages h3,
+.compliance-officer-pages h4 { color: #17243b; }
+.compliance-officer-pages p { line-height: 1.65; }
+
+/* Shared white surface treatment used by the overview's metric and content cards. */
+.compliance-officer-pages [class*="bg-slate-900"],
+.compliance-officer-pages [class*="bg-slate-950"],
+.compliance-officer-pages [class*="bg-slate-800"],
+.compliance-officer-pages [class*="bg-[#060e22]"] {
+  background-color: #fff !important;
+}
+.compliance-officer-pages [class*="border-slate-800"],
+.compliance-officer-pages [class*="border-[#142347]"],
+.compliance-officer-pages [class*="border-slate-700"] { border-color: #e4e9f2 !important; }
+.compliance-officer-pages [class*="rounded-xl"],
+.compliance-officer-pages [class*="rounded-2xl"] { border-radius: 16px; }
+.compliance-officer-pages .activity-card,
+.compliance-officer-pages .audit-filters,
+.compliance-officer-pages .audit-table-card {
+  background: #fff !important;
+  border: 1px solid #e4e9f2 !important;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px #17243b0a;
+}
+.compliance-officer-pages [class*="text-slate-100"],
+.compliance-officer-pages [class*="text-slate-200"],
+.compliance-officer-pages [class*="text-slate-300"],
+.compliance-officer-pages [class*="text-white"] { color: #263650 !important; }
+.compliance-officer-pages .org-compliance h1,
+.compliance-officer-pages .exec-report h1,
+.compliance-officer-pages .audit-log-view h1,
+.compliance-officer-pages .notifications-centre h1 { color: #f8fafc !important; }
+.compliance-officer-pages [class*="text-slate-400"] { color: #64748b !important; }
+.compliance-officer-pages [class*="text-slate-500"] { color: #8290a5 !important; }
+.compliance-officer-pages [class*="divide-slate-800"] > :not(:first-child) { border-color: #edf0f6 !important; }
+
+/* Keep the five compliance work areas on the same CyberShield surface system. */
+.compliance-officer-pages > * { margin-top: 0; }
+.compliance-officer-pages [class*="shadow-sm"] { box-shadow: 0 4px 18px #17243b08; }
+.compliance-officer-pages [class*="bg-emerald-950"],
+.compliance-officer-pages [class*="bg-indigo-950"],
+.compliance-officer-pages [class*="bg-blue-950"],
+.compliance-officer-pages [class*="bg-rose-950"],
+.compliance-officer-pages [class*="bg-amber-950"] { background-color: #fff !important; }
+.compliance-officer-pages [class*="text-emerald-200"],
+.compliance-officer-pages [class*="text-emerald-300"],
+.compliance-officer-pages [class*="text-emerald-400"] { color: #087f70 !important; }
+.compliance-officer-pages [class*="text-indigo-200"],
+.compliance-officer-pages [class*="text-indigo-300"],
+.compliance-officer-pages [class*="text-indigo-400"],
+.compliance-officer-pages [class*="text-blue-300"],
+.compliance-officer-pages [class*="text-blue-400"] { color: #5856e8 !important; }
+.compliance-officer-pages [class*="text-amber-200"],
+.compliance-officer-pages [class*="text-amber-300"],
+.compliance-officer-pages [class*="text-amber-400"] { color: #b56a00 !important; }
+.compliance-officer-pages [class*="text-rose-200"],
+.compliance-officer-pages [class*="text-rose-300"],
+.compliance-officer-pages [class*="text-rose-400"] { color: #c24155 !important; }
+.compliance-officer-pages [class*="hover:bg-slate-800"]:hover { background-color: #f8faff !important; }
+.compliance-officer-pages button[class*="bg-indigo-600"],
+.compliance-officer-pages button[class*="bg-blue-600"] { color: #fff !important; }
+.compliance-officer-pages button[class*="bg-indigo-600"]:hover,
+.compliance-officer-pages button[class*="bg-blue-600"]:hover { background-color: #4f46e5 !important; }
+.compliance-officer-pages .compliance-overview { color: #17243b; }
+.compliance-officer-pages .compliance-overview h1,
+.compliance-officer-pages .compliance-overview h2,
+.compliance-officer-pages .compliance-overview h3 { color: #f8fafc; }
+.compliance-officer-pages .compliance-footer { color: #9aabc4; }
+.compliance-officer-pages .compliance-workspace [class*="text-white"] { color: #fff !important; }
+.compliance-officer-pages .compliance-primary { color: #33417b !important; }
+.compliance-officer-pages .compliance-stat > strong { color: #17365b; }
+.compliance-officer-pages [class*="bg-[#060e22]"] [class*="text-white"] { color: #263650 !important; }
+
+/* Consistent page headings and data tables. */
+.compliance-officer-pages .border-b.border-\[\#142347\] { border-color: #e4e9f2; }
+.compliance-officer-pages table thead tr { background: #f8f9fc !important; color: #64748b !important; }
+.compliance-officer-pages table tbody tr:hover { background: #f8faff !important; }
+.compliance-officer-pages table th {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.compliance-officer-pages table td { border-color: #edf0f6; }
+.compliance-officer-pages input,
+.compliance-officer-pages select,
+.compliance-officer-pages textarea {
+  background-color: #fff !important;
+  color: #263650 !important;
+  border-color: #dce3ee !important;
+  border-radius: 9px;
+}
+.compliance-officer-pages input::placeholder { color: #94a3b8 !important; }
+.compliance-officer-pages :focus-visible { outline-color: #818cf8; }
+
+/* Compliance officer shell follows the reference workspace proportions. */
+.compliance-sidebar-shell .admin-sidebar { width: clamp(260px, 17vw, 324px); }
+.compliance-sidebar-shell .admin-sidebar-brand { padding-left: 28px; }
+.compliance-sidebar-shell .admin-sidebar-workspace { margin-left: 22px; margin-right: 22px; padding: 17px 15px; }
+.compliance-sidebar-shell .admin-nav-group { margin-bottom: 27px; }
+.compliance-sidebar-shell .admin-nav-item { min-height: 54px; font-size: 14px; }
+.compliance-topbar { height: 80px; padding-left: 0; padding-right: 20px; background: #030712; }
+.compliance-topbar > div:first-child { padding-left: 0; }
+.compliance-topbar > div:first-child > div span:first-child { font-size: 18px; }
+.compliance-topbar > div:first-child > div span:last-child { font-size: 14px; }
+.compliance-topbar a { padding: 8px; }
+.compliance-officer-pages .admin-dashboard-page { display: grid; gap: 28px; }
+.compliance-officer-pages .admin-page-header { display: flex; align-items: center; justify-content: center; gap: 24px; border: 0; padding: 12px 0 4px; text-align: center; }
+.compliance-officer-pages .admin-eyebrow { color: #6366f1; font-size: 12px; letter-spacing: 1.6px; }
+.compliance-officer-pages .admin-page-header h1 { font-size: 38px; line-height: 1.2; margin-top: 18px; letter-spacing: -1.2px; }
+.compliance-officer-pages .admin-page-header p { color: #8290a5; font-size: 15px; margin-top: 14px; }
+.compliance-officer-pages .admin-header-actions { display: flex; align-items: center; gap: 14px; }
+.compliance-officer-pages .admin-header-date { color: #8290a5; font-size: 12px; white-space: nowrap; }
+.compliance-officer-pages .admin-refresh { display: inline-flex; align-items: center; gap: 9px; padding: 13px 17px; border-radius: 10px; background: #fff; border: 1px solid #dce3ee; color: #475569; font-size: 12px; }
+.compliance-officer-pages .admin-refresh:hover { background: #f8faff; }
+.compliance-officer-pages .compliance-stat { min-height: 227px; padding: 25px; border-radius: 20px; }
+.compliance-officer-pages .compliance-stat > strong { margin-top: 23px; margin-bottom: 23px; font-size: 42px; }
+.compliance-officer-pages .compliance-middle { grid-template-columns: minmax(0, 1.65fr) minmax(380px, 1fr); }
+.compliance-officer-pages .compliance-panel,
+.compliance-officer-pages .compliance-workspace { border-radius: 20px; }
+.compliance-officer-pages .compliance-workspace { min-height: 390px; padding: 36px; }
+.compliance-officer-pages .compliance-workspace h2 { color: #f8fafc; font-size: 29px; }
+.compliance-officer-pages .compliance-workspace > p { color: #c0cae3; }
+.compliance-officer-pages .compliance-primary { color: #33417b; }
+.compliance-officer-pages .compliance-workspace-link { color: #d3dcf6; }
+.compliance-officer-pages .compliance-policy-panel { margin-bottom: 0; }
+
+/* The existing activity page controls keep their function and use the overview's accent palette. */
+.compliance-officer-pages .notification-row.notification-read { background: #fff !important; }
+.compliance-officer-pages .notification-row.notification-unread { background: #f5f7ff !important; }
+.compliance-officer-pages .notification-mark-read { background: #fff !important; color: #475569 !important; border-color: #dce3ee !important; }
+.compliance-officer-pages .notification-filters button[aria-pressed="false"] { background: #f1f5f9 !important; color: #475569 !important; }
+.compliance-officer-pages .activity-unread-summary { background: #eef2ff !important; border-color: #c7d2fe !important; color: #33417b !important; }
+.compliance-officer-pages .activity-footer { color: #8290a5; border-color: #edf0f6; }
+@media (max-width: 640px) {
+  .compliance-workspace-main { padding: 0 1rem; }
+  .compliance-workspace-main > .compliance-officer-pages { padding-right: 0; }
+  .compliance-officer-pages .admin-page-header { align-items: flex-start; flex-direction: column; }
+  .compliance-officer-pages .admin-page-header h1 { font-size: 30px; }
+  .compliance-officer-pages .admin-header-actions { width: 100%; justify-content: space-between; }
+  .compliance-officer-pages .compliance-middle { grid-template-columns: 1fr; }
+  .compliance-officer-pages .compliance-workspace { min-height: 330px; padding: 24px; }
+  .compliance-officer-pages > * { gap: 16px; }
+  .compliance-workspace-main { padding-left: 1rem; padding-right: 1rem; }
+}
+
+/* Compliance Officer pages use the same light workspace shell as System Admin. */
+.compliance-workspace-shell .compliance-workspace-main { background: #030712; padding: 32px; }
+.compliance-workspace-shell .compliance-workspace-main > .compliance-officer-pages { max-width: 1440px; padding: 0 0 32px; }
+.compliance-workspace-shell .compliance-topbar { height: 64px; padding-left: 0; padding-right: 0; background: #040817; }
+.compliance-workspace-shell .compliance-topbar > div:first-child { padding-left: 0; }
+.compliance-workspace-shell .compliance-topbar > div:first-child > div span:first-child { font-size: 15px; }
+.compliance-workspace-shell .compliance-topbar > div:first-child > div span:last-child { font-size: 12px; }
+.compliance-workspace-shell .compliance-sidebar-shell .admin-sidebar { width: 256px; }
+.compliance-workspace-shell .compliance-sidebar-shell .admin-sidebar-brand { padding-left: 24px; }
+.compliance-workspace-shell .compliance-sidebar-shell .admin-sidebar-workspace { margin-left: 16px; margin-right: 16px; padding: 14px; }
+.compliance-workspace-shell .compliance-sidebar-shell .admin-nav-group { margin-bottom: 24px; }
+.compliance-workspace-shell .compliance-sidebar-shell .admin-nav-item { min-height: 48px; font-size: 13px; }
+.compliance-officer-pages .admin-dashboard-page { gap: 24px; }
+.compliance-officer-pages .admin-page-header h1 { color: #f8fafc; }
+.compliance-officer-pages .admin-page-header p { color: #8290a5; }
+.compliance-officer-pages .compliance-overview .compliance-stat { min-height: 0; padding: 20px; border-radius: 16px; }
+.compliance-officer-pages .compliance-overview .compliance-stat > strong { margin: 12px 0; font-size: 34px; }
+.compliance-officer-pages .compliance-overview .compliance-workspace { min-height: 0; padding: 28px; border-radius: 16px; }
+.compliance-officer-pages .admin-activity { display: flex; flex-direction: column; gap: 24px; color: #17243b; font-size: 14px; }
+.compliance-officer-pages .admin-activity > * { margin: 0; }
+.compliance-officer-pages .admin-activity > div:first-child { display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; border: 0; gap: 24px; text-align: center; }
+.compliance-officer-pages .admin-activity > div:first-child h1 { color: #f8fafc; font-size: 28px; line-height: 1.3; letter-spacing: -.8px; }
+.compliance-officer-pages .admin-activity > div:first-child p { color: #526278; font-size: 13px; line-height: 1.7; margin-top: 8px; }
+.compliance-officer-pages .admin-activity .activity-card,
+.compliance-officer-pages .admin-activity .audit-filters,
+.compliance-officer-pages .admin-activity .audit-table-card { background: #fff; border: 1px solid #e4e9f2; border-radius: 16px; box-shadow: 0 4px 18px #17243b05; }
+.compliance-officer-pages .admin-activity .activity-card-heading { padding: 22px 24px; border-bottom: 1px solid #edf0f6; }
+.compliance-officer-pages .admin-activity .activity-card-heading h2 { color: #f8fafc; font-size: 15px; text-transform: none; letter-spacing: 0; text-align: center; }
+.compliance-officer-pages .admin-activity .notification-row { padding: 24px; border-bottom: 1px solid #edf0f6; }
+.compliance-officer-pages .admin-activity .notification-row.notification-unread { background: #fafbff !important; border-left-color: #818cf8; }
+.compliance-officer-pages .admin-activity .notification-row.notification-read { background: #fff !important; }
+.compliance-officer-pages .admin-activity .notification-title h4 { color: #17243b; }
+.compliance-officer-pages .admin-activity .notification-mark-read { background: #eef2ff !important; color: #4f46e5 !important; border-color: #e0e7ff !important; }
+.compliance-officer-pages .admin-activity .notification-filters button[aria-pressed="false"] { background: transparent !important; color: #64748b !important; }
+.compliance-officer-pages .admin-activity .notification-filters button[aria-pressed="true"] { background: #fff !important; color: #4f46e5 !important; }
+.compliance-officer-pages .admin-activity .activity-unread-summary { background: #eef2ff !important; border-color: #dfe5ff !important; }
+.compliance-officer-pages .admin-activity .audit-filters { padding: 24px; }
+.compliance-officer-pages .admin-activity .audit-table-card table { min-width: 1150px; }
+@media (max-width: 760px) {
+  .compliance-workspace-shell .compliance-workspace-main { background: #030712; padding: 24px 16px; }
+  .compliance-workspace-shell .compliance-workspace-main > .compliance-officer-pages { padding-bottom: 24px; }
+  .compliance-officer-pages .admin-activity { gap: 20px; }
+  .compliance-officer-pages .admin-activity > div:first-child { align-items: flex-start; flex-direction: column; gap: 16px; }
+  .compliance-officer-pages .admin-activity > div:first-child h1 { font-size: 26px; }
+  .compliance-officer-pages .admin-activity .audit-filters { padding: 20px; }
+  .compliance-officer-pages .admin-activity .notification-row { flex-direction: column; gap: 14px; padding: 20px 16px; }
+  .compliance-officer-pages .admin-activity .notification-mark-read { margin-left: 56px; }
+}
