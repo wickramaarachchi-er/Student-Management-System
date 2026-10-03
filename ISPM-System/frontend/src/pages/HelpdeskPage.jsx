@@ -18,6 +18,7 @@ import LoadingState from '../components/common/LoadingState.jsx';
 import ErrorState from '../components/common/ErrorState.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import './HelpdeskPage.css';
+import './EmployeeHelpdeskPage.css';
 
 const PRIORITY_STYLES = {
   CRITICAL: 'bg-rose-500/10 text-rose-300 border-rose-500/30',
@@ -40,6 +41,7 @@ function PriorityBadge({ priority }) {
 export default function HelpdeskPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'SYSTEM_ADMIN';
+  const isEmployee = user?.role === 'EMPLOYEE';
 
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +60,7 @@ export default function HelpdeskPage() {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [ticketDetails, setTicketDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState('');
   const [responseText, setResponseText] = useState('');
   const [responseError, setResponseError] = useState('');
   const [sendingResponse, setSendingResponse] = useState(false);
@@ -85,13 +88,16 @@ export default function HelpdeskPage() {
   const handleOpenDetails = async (id) => {
     setSelectedTicketId(id);
     setLoadingDetails(true);
+    setTicketDetails(null);
+    setDetailsError('');
     setResponseText('');
     setResponseError('');
     try {
       const res = await getTicketDetailsRequest(id);
       if (res.ok && res.data?.success) setTicketDetails(res.data.data.ticket);
+      else setDetailsError(res.data?.message || 'Failed to load the ticket conversation.');
     } catch {
-      // silently fail
+      setDetailsError('A network error occurred while loading this conversation.');
     } finally {
       setLoadingDetails(false);
     }
@@ -168,12 +174,14 @@ export default function HelpdeskPage() {
   const MODAL_INPUT = 'w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
 
   return (
-    <div className={isAdmin ? "admin-helpdesk space-y-6" : "space-y-6"}>
+    <div className={isEmployee ? 'employee-helpdesk' : isAdmin ? "admin-helpdesk space-y-6" : "space-y-6"}>
       {isAdmin ? (
         <header className="hd-page-header">
           <div><span className="hd-eyebrow">ADMINISTRATION / SUPPORT</span><h1>Help desk</h1><p>Manage security inquiries, respond to requests, and track ticket progress.</p></div>
           <button type="button" className="hd-refresh" onClick={fetchTickets} disabled={loading}><Icon name="refresh" className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />Refresh tickets</button>
         </header>
+      ) : isEmployee ? (
+        <header className="eh-header"><div><span className="eh-eyebrow">MY WORKSPACE / SUPPORT</span><h1>Security helpdesk</h1><p>Ask a security question, report a concern, and follow your support conversations.</p></div><div className="eh-header-actions"><button type="button" className="eh-refresh" onClick={fetchTickets} disabled={loading}><Icon name="refresh" className="w-4 h-4" />Refresh</button><button type="button" className="eh-primary" onClick={() => setShowCreateModal(true)}><Icon name="plus" className="w-4 h-4" />New support request</button></div></header>
       ) : (
       <PageHeader
         title={isAdmin ? "Help desk" : "Security Helpdesk & Support"}
@@ -199,6 +207,12 @@ export default function HelpdeskPage() {
       />
       )}
 
+      {isEmployee && !loading && !error && <section className="eh-summary" aria-label="Ticket summary for current filters">{[
+        { label: 'Open requests', status: 'OPEN', icon: 'helpdesk', tone: 'blue', detail: 'Waiting for support' },
+        { label: 'In progress', status: 'IN_PROGRESS', icon: 'trending-up', tone: 'amber', detail: 'Currently being investigated' },
+        { label: 'Resolved requests', status: 'RESOLVED', icon: 'check', tone: 'green', detail: 'Support resolution recorded' },
+      ].map(stat => <article key={stat.status}><span className={'eh-stat-icon ' + stat.tone}><Icon name={stat.icon} className="w-5 h-5" /></span><h2>{stat.label}</h2><strong>{tickets.filter(ticket => ticket.status === stat.status).length}</strong><p>{stat.detail}</p></article>)}</section>}
+
       {isAdmin && (
         <section className="hd-overview" aria-label="Ticket overview for current filters">
           {[
@@ -215,12 +229,13 @@ export default function HelpdeskPage() {
         </section>
       )}
 
-      <div className={isAdmin ? 'hd-ticket-card' : 'bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm'}>
-        <div className={isAdmin ? 'hd-directory-heading' : 'px-6 py-4 border-b border-slate-800 flex flex-col gap-3'}>
+      <div className={isAdmin || isEmployee ? 'hd-ticket-card' : 'bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm'}>
+        <div className={isAdmin || isEmployee ? 'hd-directory-heading' : 'px-6 py-4 border-b border-slate-800 flex flex-col gap-3'}>
           <div><h2 className="text-sm font-bold text-slate-100">{isAdmin ? 'Support ticket directory' : 'My Support Tickets'} {isAdmin && <span className="hd-count">{loading || error ? '\u2014' : tickets.length}</span>}</h2>{isAdmin && <p>Review inquiries, follow conversations, and keep requests moving.</p>}</div>
           {isAdmin && <span className="hd-directory-note"><Icon name="shield-check" className="w-4 h-4" />Security support</span>}
+          {isEmployee && <p className="eh-directory-note">Review your requests and keep the conversation going.</p>}
         </div>
-        <div className={isAdmin ? 'hd-filters' : 'px-6 py-4 flex flex-wrap gap-3'}>
+        <div className={isAdmin || isEmployee ? 'hd-filters' : 'px-6 py-4 flex flex-wrap gap-3'}>
           <label className="hd-search"><span>Search tickets</span><div><Icon name="search" className="w-4 h-4" /><input type="search" placeholder="Search subject or description..." value={search} onChange={e => setSearch(e.target.value)} className={INPUT_CLASS} /></div></label>
           <label><span>Ticket status</span><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className={INPUT_CLASS}><option value="">All statuses</option><option value="OPEN">Open</option><option value="IN_PROGRESS">In progress</option><option value="RESOLVED">Resolved</option><option value="CLOSED">Closed</option></select></label>
           <label><span>Priority level</span><select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} className={INPUT_CLASS}><option value="">All priorities</option><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option></select></label>
@@ -235,7 +250,7 @@ export default function HelpdeskPage() {
           <div className="p-6">
             <EmptyState
               title="No support tickets found"
-              description={isAdmin ? 'No user support tickets match the current filter criteria.' : 'You have not submitted any helpdesk queries yet.'}
+              description={isAdmin ? 'No user support tickets match the current filter criteria.' : search || statusFilter || priorityFilter ? 'Try another search or reset your filters.' : 'Create a support request to ask a question or report a security concern.'}
               icon="helpdesk"
             />
           </div>
@@ -285,16 +300,16 @@ export default function HelpdeskPage() {
             </table>
           </div>
         )}
-        {isAdmin && !loading && !error && <div className="hd-table-footer"><span>Showing {tickets.length} ticket{tickets.length === 1 ? '' : 's'}{search || statusFilter || priorityFilter ? ' matching your filters' : ''}</span><span>Open a thread to reply or update its status</span></div>}
+        {(isAdmin || isEmployee) && !loading && !error && <div className="hd-table-footer" role="status"><span>Showing {tickets.length} ticket{tickets.length === 1 ? '' : 's'}{search || statusFilter || priorityFilter ? ' matching your filters' : ''}</span><span>{isAdmin ? 'Open a thread to reply or update its status' : 'Summary reflects your current filters'}</span></div>}
       </div>
 
       {/* Create Ticket Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="helpdesk-create-title" className="eh-create-dialog bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-slate-100">Submit Security Support Ticket</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-200 p-1 rounded-lg cursor-pointer">
+              <h3 id="helpdesk-create-title" className="text-base font-bold text-slate-100">New security support request</h3>
+              <button aria-label="Close new support request" onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-200 p-1 rounded-lg cursor-pointer">
                 <Icon name="close" className="w-5 h-5" />
               </button>
             </div>
@@ -405,6 +420,8 @@ export default function HelpdeskPage() {
             <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs">
               {loadingDetails ? (
                 <div className="p-6"><LoadingState message="Loading message thread…" /></div>
+              ) : detailsError ? (
+                <ErrorState message={detailsError} onRetry={() => handleOpenDetails(selectedTicketId)} />
               ) : ticketDetails ? (
                 <>
                   {/* Original inquiry */}
@@ -456,6 +473,7 @@ export default function HelpdeskPage() {
               <div className="flex gap-2">
                 <input
                   type="text"
+                  aria-label="Reply to this support conversation"
                   required
                   placeholder={isAdmin ? 'Type administrator response…' : 'Type follow-up response…'}
                   value={responseText}
@@ -464,7 +482,7 @@ export default function HelpdeskPage() {
                 />
                 <button
                   type="submit"
-                  disabled={sendingResponse}
+                  disabled={sendingResponse || loadingDetails || !ticketDetails}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
                 >
                   <Icon name="send" className="w-3.5 h-3.5" />

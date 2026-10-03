@@ -6,7 +6,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 import { listQuizzesRequest } from '../services/quiz.service.js';
 import Icon from '../components/common/Icon.jsx';
-import PageHeader from '../components/common/PageHeader.jsx';
+import './QuizzesPage.css';
+import './EmployeeQuizzesPage.css';
+import { Link } from 'react-router-dom';
 import StatusBadge from '../components/common/StatusBadge.jsx';
 import LoadingState from '../components/common/LoadingState.jsx';
 import ErrorState from '../components/common/ErrorState.jsx';
@@ -27,6 +29,7 @@ export default function QuizzesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [assessmentFilter, setAssessmentFilter] = useState('ALL');
 
   // Modals state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -67,8 +70,16 @@ export default function QuizzesPage() {
     fetchQuizzes();
   }, [fetchQuizzes]);
 
+  const assessmentState = quiz => {
+    const trainingCompleted = Boolean(quiz.isTrainingCompleted ?? quiz.isPrerequisiteMet);
+    const passed = Boolean(quiz.isPassed ?? quiz.latestAttempt?.isPassed);
+    const canAttempt = Boolean(quiz.canAttempt ?? (trainingCompleted && quiz.questionCount > 0));
+    return { trainingCompleted, passed, canAttempt, status: passed ? 'PASSED' : canAttempt ? 'READY' : 'LOCKED' };
+  };
+  const filteredQuizzes = quizzes.filter(quiz => assessmentFilter === 'ALL' || assessmentState(quiz).status === assessmentFilter);
+
   return (
-    <div className="space-y-6">
+    <div className={isEmployee ? "employee-quizzes-page" : isTrainingAdmin ? "quiz-page space-y-6" : "space-y-6"}>
       {/* Toast Notification */}
       {toastMessage && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl shadow-xs flex items-center justify-between animate-in fade-in duration-150">
@@ -76,43 +87,29 @@ export default function QuizzesPage() {
             <Icon name="check" className="w-4 h-4 text-emerald-600" />
             <span>{toastMessage}</span>
           </div>
-          <button onClick={() => setToastMessage('')} className="text-emerald-500 hover:text-emerald-700">
+          <button aria-label="Dismiss notification" onClick={() => setToastMessage('')} className="text-emerald-500 hover:text-emerald-700">
             <Icon name="close" className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      <PageHeader
-        title={isTrainingAdmin ? 'Quiz & Knowledge Assessment Management' : 'Policy & Security Knowledge Quizzes'}
-        description={
-          isTrainingAdmin
-            ? 'Create assessments linked to training modules, configure passing thresholds, author questions, and review employee attempt scores.'
-            : 'Validate your understanding of cybersecurity practices and training materials through interactive quizzes.'
-        }
-        icon="clipboard"
-        action={
-          isTrainingAdmin ? (
-            <button
-              id="add-quiz-btn"
-              onClick={() => setIsCreateOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-950 cursor-pointer"
-            >
-              <Icon name="plus" className="w-4 h-4" />
-              <span>Create New Quiz</span>
-            </button>
-          ) : null
-        }
-      />
-
+      {isEmployee ? <header className="eq-header"><div><span className="eq-eyebrow">MY WORKSPACE / ASSESSMENTS</span><h1>Security knowledge quizzes</h1><p>Put your learning into practice and track your assessment results.</p></div><div className="eq-header-actions"><Link to="/my-progress">My progress <span aria-hidden="true">&#8594;</span></Link><button type="button" onClick={fetchQuizzes} disabled={loading}><Icon name="refresh" className="w-4 h-4" />{loading?'Refreshing...':'Refresh'}</button></div></header> : <header className="quiz-page-header"><div><span className="quiz-eyebrow">TRAINING / ASSESSMENTS</span><h1>{isTrainingAdmin ? 'Quiz management' : 'Security knowledge quizzes'}</h1><p>{isTrainingAdmin ? 'Manage assessments, questions, and your team’s results.' : 'Validate your understanding of security practices through interactive quizzes.'}</p></div>{isTrainingAdmin && <button id="add-quiz-btn" className="quiz-primary" onClick={() => setIsCreateOpen(true)}><Icon name="plus" className="w-4 h-4" />Create new quiz</button>}</header>}
+      {isTrainingAdmin && !loading && !error && <section className="quiz-summary" aria-label="Current quiz results">
+        {[{ label: 'Assessments', value: quizzes.length, icon: 'clipboard-list', tone: 'blue', detail: searchTerm ? 'Matching your search' : 'In your assessment catalog' }, { label: 'Questions', value: quizzes.reduce((sum, quiz) => sum + (quiz.questionCount || 0), 0), icon: 'book', tone: 'violet', detail: 'Across the displayed assessments' }, { label: 'Recorded attempts', value: quizzes.reduce((sum, quiz) => sum + (quiz.attemptCount || 0), 0), icon: 'chart', tone: 'mint', detail: 'Across the displayed assessments' }].map(stat => <article key={stat.label}><span className={'quiz-summary-icon ' + stat.tone}><Icon name={stat.icon} className="w-5 h-5" /></span><span>{stat.label}</span><strong>{stat.value}</strong><p>{stat.detail}</p></article>)}
+      </section>}
+      {isEmployee && !loading && !error && <section className="eq-summary" aria-label="Assessment summary for current search">{[{label:'Assessments',value:quizzes.length,icon:'clipboard-list',tone:'blue',detail:'Matching your current search'},{label:'Passed',value:quizzes.filter(q=>assessmentState(q).passed).length,icon:'award',tone:'green',detail:'Knowledge requirements achieved'},{label:'Ready to attempt',value:quizzes.filter(q=>assessmentState(q).status==='READY').length,icon:'check',tone:'violet',detail:'Available for your next step'},{label:'Currently locked',value:quizzes.filter(q=>assessmentState(q).status==='LOCKED').length,icon:'lock',tone:'amber',detail:'See course or availability details'}].map(stat=><article key={stat.label}><span className={'eq-stat-icon '+stat.tone}><Icon name={stat.icon} className="w-5 h-5" /></span><h2>{stat.label}</h2><strong>{stat.value}</strong><p>{stat.detail}</p></article>)}</section>}
+      <div className={isEmployee ? 'eq-collection' : isTrainingAdmin ? 'quiz-collection' : undefined}>
+      {isEmployee && <div className="eq-collection-heading"><div><h2>Your assessment library</h2><p>Complete the linked training before attempting its quiz.</p></div><div className="eq-tabs" role="group" aria-label="Filter assessment status">{[{value:'ALL',label:'All quizzes'},{value:'READY',label:'Ready'},{value:'PASSED',label:'Passed'},{value:'LOCKED',label:'Locked'}].map(tab=><button type="button" key={tab.value} aria-pressed={assessmentFilter===tab.value} onClick={()=>setAssessmentFilter(tab.value)}>{tab.label}</button>)}</div></div>}
+      {isTrainingAdmin && <div className="quiz-collection-header"><div><h2>Your assessments</h2><p>Configure pass marks, organize questions, and review results.</p></div><button type="button" className="quiz-refresh" onClick={fetchQuizzes} disabled={loading}><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh'}</button></div>}
       {/* Search Bar */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
+      <div className="quiz-toolbar bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
         <div className="relative">
           <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
-            type="text"
+            type="search" aria-label="Search quizzes"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search quizzes by title or keywords…"
+            placeholder="Search quizzes by title or keyword..."
             className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
@@ -120,7 +117,7 @@ export default function QuizzesPage() {
 
       {/* Main Content View */}
       {loading ? (
-        <LoadingState message="Loading assessments…" rows={4} />
+        <LoadingState message="Loading assessments..." rows={4} />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchQuizzes} />
       ) : quizzes.length === 0 ? (
@@ -128,199 +125,39 @@ export default function QuizzesPage() {
           title="No quizzes found"
           description={
             isTrainingAdmin
-              ? 'Click "Create New Quiz" to link an assessment to one of your training modules.'
-              : 'There are no active security knowledge quizzes available at this time.'
+              ? (searchTerm ? 'Try a different keyword to find your assessment.' : 'Create a quiz and link it to a training module to get started.')
+              : searchTerm ? 'Try a different keyword to find your assessment.' : 'There are no active security knowledge quizzes available at this time.'
           }
           icon="clipboard"
         />
       ) : isTrainingAdmin ? (
-        /* ================= TRAINING ADMIN TABLE VIEW ================= */
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-5">Quiz / Title</th>
-                  <th className="py-3.5 px-5">Training Module</th>
-                  <th className="py-3.5 px-5">Pass Mark</th>
-                  <th className="py-3.5 px-5">Questions</th>
-                  <th className="py-3.5 px-5">Module Status</th>
-                  <th className="py-3.5 px-5">Attempts</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/70 text-xs">
-                {quizzes.map((quiz) => (
-                  <tr key={quiz.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-4 px-5 max-w-xs">
-                      <div className="font-bold text-slate-100 text-sm">{quiz.title}</div>
-                      <p className="text-slate-400 text-xs line-clamp-1 mt-0.5">
-                        {quiz.description || 'No instructions provided.'}
-                      </p>
-                    </td>
-                    <td className="py-4 px-5">
-                      {quiz.trainingModule ? (
-                        <div className="font-medium text-slate-200 flex items-center gap-1.5">
-                          <Icon name="academic-cap" className="w-4 h-4 text-blue-400" />
-                          <span className="line-clamp-1">{quiz.trainingModule.title}</span>
-                        </div>
-                      ) : (
-                        <span className="text-slate-500 italic">None</span>
-                      )}
-                    </td>
-                    <td className="py-4 px-5">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-blue-600/15 text-blue-300 border border-blue-500/20">
-                        {quiz.passingScore}%
-                      </span>
-                    </td>
-                    <td className="py-4 px-5">
-                      <span className="font-semibold text-slate-200">
-                        {quiz.questionCount || 0} questions
-                      </span>
-                    </td>
-                    <td className="py-4 px-5">
-                      <StatusBadge status={quiz.trainingModule?.isPublished ? 'PUBLISHED' : 'DRAFT'} />
-                    </td>
-                    <td className="py-4 px-5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-200">{quiz.attemptCount || 0}</span>
-                        <button
-                          onClick={() => setReportQuiz(quiz)}
-                          className="text-blue-400 hover:text-blue-300 font-semibold hover:underline text-[11px] cursor-pointer"
-                        >
-                          View Results →
-                        </button>
-                      </div>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          id={`manage-questions-${quiz.id}`}
-                          onClick={() => setQuestionsQuiz(quiz)}
-                          className="px-2.5 py-1.5 rounded-lg bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 hover:border-blue-500 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-                          title="Manage Questions & Options"
-                        >
-                          <Icon name="clipboard" className="w-3.5 h-3.5" />
-                          <span>Questions</span>
-                        </button>
-                        <button
-                          onClick={() => setEditingQuiz(quiz)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
-                          title="Edit Settings"
-                        >
-                          <Icon name="pencil" className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setReportQuiz(quiz)}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer"
-                          title="View Attempt Report"
-                        >
-                          <Icon name="chart" className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <section aria-label="Quiz catalog"><div className="quiz-results-count" role="status">{quizzes.length} {quizzes.length === 1 ? 'assessment' : 'assessments'}{searchTerm ? ' matching your search' : ' in your catalog'}</div><div className="quiz-table-scroll"><table className="quiz-table"><caption className="sr-only">Quiz settings, linked training, question counts, attempts, and management actions</caption><thead><tr><th scope="col">Assessment</th><th scope="col">Training module</th><th scope="col">Pass mark</th><th scope="col">Questions</th><th scope="col">Attempts</th><th scope="col">Actions</th></tr></thead><tbody>
+          {quizzes.map(quiz => <tr key={quiz.id}>
+            <td className="quiz-title-cell"><button onClick={() => setEditingQuiz(quiz)}>{quiz.title}</button><p>{quiz.description || 'No instructions provided.'}</p></td>
+            <td><div className="quiz-linked-module"><Icon name="academic-cap" className="w-4 h-4" /><span>{quiz.trainingModule?.title || 'No linked module'}</span></div><span className={'quiz-module-status ' + (quiz.trainingModule?.isPublished ? 'published' : 'draft')}><i />{quiz.trainingModule?.isPublished ? 'Published' : 'Draft'}</span></td>
+            <td><span className="quiz-pass-mark">{quiz.passingScore}%</span></td>
+            <td><span className="quiz-number">{quiz.questionCount || 0}</span><span className="quiz-cell-caption">questions</span></td>
+            <td><span className="quiz-number">{quiz.attemptCount || 0}</span><span className="quiz-cell-caption">attempts</span></td>
+            <td><div className="quiz-table-actions"><button id={'manage-questions-' + quiz.id} className="quiz-questions-button" onClick={() => setQuestionsQuiz(quiz)} aria-label={'Manage questions for ' + quiz.title} title="Manage questions and options"><Icon name="clipboard-list" className="w-4 h-4" /></button><button onClick={() => setEditingQuiz(quiz)} aria-label={'Edit ' + quiz.title} title="Edit settings"><Icon name="pencil" className="w-4 h-4" /></button><button onClick={() => setReportQuiz(quiz)} aria-label={'View attempt report for ' + quiz.title} title="View attempt report"><Icon name="chart" className="w-4 h-4" /></button></div></td>
+          </tr>)}
+        </tbody></table></div></section>
       ) : (
-        /* ================= EMPLOYEE QUIZ CATALOG VIEW ================= */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {quizzes.map((quiz) => {
-            const hasCompletedTraining = Boolean(quiz.isTrainingCompleted ?? quiz.isPrerequisiteMet);
-            const latestAttempt = quiz.latestAttempt;
-            const hasPassed = Boolean(quiz.isPassed ?? latestAttempt?.isPassed);
-            const canAttempt = Boolean(quiz.canAttempt ?? (hasCompletedTraining && quiz.questionCount > 0));
-            const accentColor = hasPassed ? 'bg-emerald-500' : !hasCompletedTraining ? 'bg-slate-600' : latestAttempt ? 'bg-rose-500' : 'bg-blue-500';
-
-            return (
-              <div
-                key={quiz.id}
-                data-quiz-card={quiz.id}
-                className="bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:shadow-md transition-all flex flex-col overflow-hidden"
-              >
-                <div className={`h-1.5 w-full ${accentColor}`} />
-
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div>
-                    {/* Status & Prerequisite Badges */}
-                    <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
-                      {hasPassed ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                          <Icon name="check" className="w-3 h-3 mr-1" />
-                          Passed ({latestAttempt?.score}%)
-                        </span>
-                      ) : latestAttempt ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">
-                          <Icon name="close" className="w-3 h-3 mr-1" />
-                          Failed ({latestAttempt.score}%)
-                        </span>
-                      ) : hasCompletedTraining ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mr-1.5"></span>
-                          Ready to Attempt
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                          <Icon name="lock" className="w-3 h-3 mr-1" />
-                          Training Required
-                        </span>
-                      )}
-                      <span className="inline-flex items-center text-[11px] font-medium text-slate-500">
-                        Pass Mark: <strong className="ml-1 text-slate-300">{quiz.passingScore}%</strong>
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-slate-100 line-clamp-2">{quiz.title}</h3>
-
-                    {quiz.trainingModule && (
-                      <div className="mt-1 flex items-center gap-1.5 text-xs text-blue-400 font-medium">
-                        <Icon name="academic-cap" className="w-3.5 h-3.5" />
-                        <span className="line-clamp-1">{quiz.trainingModule.title}</span>
-                      </div>
-                    )}
-
-                    <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
-                      {quiz.description || 'Test your knowledge on key principles and guidelines from this security module.'}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                    <div className="text-[11px] text-slate-500">
-                      {quiz.questionCount || 0} Questions
-                    </div>
-                    {canAttempt ? (
-                      <button
-                        data-start-quiz-btn={quiz.id}
-                        onClick={() => setTakingQuizId(quiz.id)}
-                        className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                          hasPassed
-                            ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
-                        }`}
-                      >
-                        <span>{hasPassed ? 'Retake Quiz' : latestAttempt ? 'Retry Quiz' : 'Start Assessment'}</span>
-                        <Icon name="arrow-right" className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="px-4 py-1.5 rounded-xl text-xs font-semibold bg-slate-800/60 text-slate-500 cursor-not-allowed flex items-center gap-1.5"
-                        title={!hasCompletedTraining ? 'Complete the training module first.' : 'Assessment unavailable.'}
-                      >
-                        <Icon name="lock" className="w-3.5 h-3.5" />
-                        <span>Locked</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <section className="eq-catalog" aria-label="Quiz catalog"><p className="eq-result-count" role="status">{filteredQuizzes.length} {filteredQuizzes.length===1?'assessment':'assessments'} in this view</p>
+          {filteredQuizzes.length===0 ? <div className="eq-empty"><Icon name="clipboard-list" className="w-6 h-6" /><h3>No assessments with this status</h3><p>Choose another status to explore your quizzes.</p><button type="button" onClick={()=>setAssessmentFilter('ALL')}>View all quizzes</button></div> : <div className="eq-card-grid">{filteredQuizzes.map(quiz=>{
+            const state=assessmentState(quiz);
+            const latest=quiz.latestAttempt;
+            const tone=state.passed?'passed':state.canAttempt?'ready':'locked';
+            return <article key={quiz.id} data-quiz-card={quiz.id} className={'eq-quiz-card '+tone}><div className="eq-card-top"><span className="eq-card-icon"><Icon name="clipboard-list" className="w-6 h-6" /></span><span className={'eq-status '+tone}><Icon name={state.passed?'check':state.canAttempt?'award':'lock'} className="w-3 h-3" />{state.passed?'Passed':state.canAttempt?latest?'Retry available':'Ready to attempt':state.trainingCompleted?'Unavailable':'Training required'}</span></div><h3>{quiz.title}</h3><p className="eq-description">{quiz.description||'Test your understanding of the security practices covered in this course.'}</p>
+              {quiz.trainingModule&&<Link to="/training" className="eq-linked-course"><Icon name="academic-cap" className="w-4 h-4" /><span>{quiz.trainingModule.title}</span></Link>}
+              <div className="eq-card-facts"><div><span>Questions</span><strong>{quiz.questionCount||0}</strong></div><div><span>Pass mark</span><strong>{quiz.passingScore}%</strong></div><div><span>Latest score</span><strong>{latest?.score!=null?latest.score+'%':'Not attempted'}</strong></div></div>
+              {!state.canAttempt&&!state.passed&&<p className="eq-prerequisite">{!state.trainingCompleted?'Finish the linked training to unlock this assessment.':'This assessment is currently unavailable.'}</p>}
+              <div className="eq-card-footer"><span>{state.passed?'Requirement achieved':latest?'Latest attempt: '+(latest.isPassed?'passed':'not passed'):'Build confidence in your knowledge'}</span>{state.canAttempt?<button type="button" data-start-quiz-btn={quiz.id} aria-label={(state.passed?'Retake ':latest?'Retry ':'Start ')+quiz.title} className={state.passed?'eq-secondary':'eq-primary'} onClick={()=>setTakingQuizId(quiz.id)}>{state.passed?'Retake quiz':latest?'Retry quiz':'Start assessment'}<span aria-hidden="true">&#8594;</span></button>:!state.trainingCompleted?<Link to="/training" className="eq-training-link">Go to training <span aria-hidden="true">&#8594;</span></Link>:<button type="button" disabled className="eq-disabled"><Icon name="lock" className="w-4 h-4" />Unavailable</button>}</div>
+            </article>;
+          })}</div>}
+        </section>
       )}
+
+      </div>
 
       {/* MODALS */}
       {isCreateOpen && (
@@ -340,7 +177,7 @@ export default function QuizzesPage() {
           isOpen={Boolean(editingQuiz)}
           quiz={editingQuiz}
           onClose={() => setEditingQuiz(null)}
-          onSuccess={() => {
+          onUpdated={() => {
             setEditingQuiz(null);
             showToast('Quiz settings updated successfully!');
             fetchQuizzes();

@@ -12,6 +12,7 @@ import {
   deleteQuestionRequest,
 } from '../../services/quiz.service.js';
 import Icon from '../common/Icon.jsx';
+import './QuizAdminDialogs.css';
 
 export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuestionsChanged }) {
   const [quiz, setQuiz] = useState(null);
@@ -206,17 +207,17 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
   const questionsList = quiz?.questions || [];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="quiz-admin-overlay fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="quiz-admin-dialog quiz-admin-questions bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
         aria-labelledby="manage-questions-title"
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+        <div className="quiz-admin-header px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 flex-shrink-0">
+          <div className="quiz-admin-heading flex items-center space-x-3">
+            <div className="quiz-admin-emblem w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
               <Icon name="clipboard-list" className="w-5 h-5" />
             </div>
             <div>
@@ -234,7 +235,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="quiz-admin-close text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Close"
           >
             <Icon name="close" className="w-5 h-5" />
@@ -242,7 +243,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+        <div className="quiz-admin-body p-6 overflow-y-auto flex-1 space-y-6">
           {loading ? (
             <div className="py-16 flex flex-col items-center justify-center text-slate-400 space-y-3">
               <Icon name="refresh" className="w-8 h-8 animate-spin text-indigo-500" />
@@ -290,7 +291,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
                   {questionsList.map((q, qIdx) => (
                     <div
                       key={q.id}
-                      className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl hover:border-slate-300 transition-all space-y-3"
+                      className="quiz-question-card p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl hover:border-slate-300 transition-all space-y-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start space-x-2.5">
@@ -307,18 +308,18 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-1.5 flex-shrink-0">
+                        <div className="quiz-question-actions flex items-center space-x-1.5 flex-shrink-0">
                           <button
                             onClick={() => startEdit(q)}
                             className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded-lg transition-colors"
-                            title="Edit Question"
+                            title="Edit Question" aria-label={"Edit question " + (qIdx + 1)}
                           >
                             <Icon name="pencil" className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeletingQuestionId(q.id)}
                             className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Delete Question"
+                            title="Delete Question" aria-label={"Delete question " + (qIdx + 1)}
                           >
                             <Icon name="close" className="w-3.5 h-3.5" />
                           </button>
@@ -326,7 +327,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
                       </div>
 
                       {/* Options List */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
+                      <div className="quiz-answer-grid grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
                         {(q.options || []).map((opt) => (
                           <div
                             key={opt.id}
@@ -345,7 +346,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
                             >
                               {opt.isCorrect ? '✓' : '•'}
                             </span>
-                            <span className="truncate flex-1">{opt.optionText}</span>
+                            <span className="quiz-answer-text flex-1">{opt.optionText}</span>
                             {opt.isCorrect && (
                               <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
                                 Correct
@@ -473,7 +474,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
                         required
                         value={opt.optionText}
                         onChange={(e) => handleOptionTextChange(oIdx, e.target.value)}
-                        placeholder={`Option ${oIdx + 1} text...`}
+                        aria-label={`Answer option ${oIdx + 1}`} placeholder={`Option ${oIdx + 1} text...`}
                         className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
 
@@ -493,7 +494,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+              <div className="quiz-admin-form-actions pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setViewMode('LIST')}
@@ -526,7 +527,7 @@ export default function ManageQuestionsModal({ isOpen, onClose, quizId, onQuesti
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
+        <div className="quiz-admin-footer px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
           <p className="text-xs text-slate-500">
             {questionsList.length} question{questionsList.length !== 1 ? 's' : ''} in assessment
           </p>

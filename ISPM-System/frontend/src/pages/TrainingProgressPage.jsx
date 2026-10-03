@@ -5,8 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { listTrainingRequest } from '../services/training.service.js';
 import Icon from '../components/common/Icon.jsx';
-import PageHeader from '../components/common/PageHeader.jsx';
-import StatusBadge from '../components/common/StatusBadge.jsx';
+import './TrainingProgressPage.css';
 import LoadingState from '../components/common/LoadingState.jsx';
 import ErrorState from '../components/common/ErrorState.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
@@ -40,95 +39,71 @@ export default function TrainingProgressPage() {
     fetchModules();
   }, [fetchModules]);
 
+  const totals = modules.reduce((sum, mod) => ({
+    completed: sum.completed + (mod.stats?.completed || 0),
+    inProgress: sum.inProgress + (mod.stats?.inProgress || 0),
+  }), { completed: 0, inProgress: 0 });
+  const summaryCards = [
+    { label: 'Training modules', value: modules.length, icon: 'book', tone: 'blue', detail: 'Published and draft courses' },
+    { label: 'Published modules', value: modules.filter(mod => mod.isPublished).length, icon: 'academic-cap', tone: 'violet', detail: 'Available for employees' },
+    { label: 'Course completions', value: totals.completed, icon: 'check', tone: 'green', detail: 'Completed employee-course records' },
+    { label: 'In progress', value: totals.inProgress, icon: 'trending-up', tone: 'amber', detail: 'Employee-course records underway' },
+  ];
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Training Progress Oversight"
-        description="Monitor organization-wide course engagement, completion ratios, and employee compliance statuses."
-        icon="trending-up"
-      />
-
-      {/* Search Bar */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm">
-        <div className="relative">
-          <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search training modules by name…"
-            className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-          />
+    <div className="progress-oversight">
+      <header className="oversight-header">
+        <div>
+          <span className="oversight-eyebrow">TRAINING / PROGRESS</span>
+          <h1>Training progress oversight</h1>
+          <p>Track course engagement and completions, then explore each employee roster.</p>
         </div>
-      </div>
+        <button type="button" className="oversight-refresh" onClick={fetchModules} disabled={loading}>
+          <Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh overview'}
+        </button>
+      </header>
 
-      {/* Modules Progress Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-3.5 border-b border-slate-800 flex items-center justify-between">
-          <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Course Completion Overview</h2>
-          <span className="text-xs text-slate-400">{modules.length} active module{modules.length !== 1 ? 's' : ''}</span>
+      {!loading && !error && <section className="oversight-summary" aria-label="Training summary for displayed modules">
+        {summaryCards.map(card => <article key={card.label}>
+          <span className={'oversight-stat-icon ' + card.tone}><Icon name={card.icon} className="w-5 h-5" /></span>
+          <h2>{card.label}</h2><strong>{card.value}</strong><p>{card.detail}</p>
+        </article>)}
+      </section>}
+
+      <section className="oversight-panel" aria-labelledby="oversight-courses-title">
+        <div className="oversight-panel-heading">
+          <div><h2 id="oversight-courses-title">Course completion overview</h2><p>Review engagement and open a roster for individual progress.</p></div>
+          {!loading && !error && <span className="oversight-count">{modules.length} module{modules.length !== 1 ? 's' : ''}</span>}
         </div>
-
-        {loading ? (
-          <div className="p-6"><LoadingState message="Loading training progress reports…" /></div>
-        ) : error ? (
-          <div className="p-6"><ErrorState message={error} onRetry={fetchModules} /></div>
-        ) : modules.length === 0 ? (
-          <div className="p-6"><EmptyState title="No training modules found" description="No active training modules are available." icon="academic-cap" /></div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-5">Training Module</th>
-                  <th className="py-3.5 px-5">Status</th>
-                  <th className="py-3.5 px-5">Completions</th>
-                  <th className="py-3.5 px-5">In Progress</th>
-                  <th className="py-3.5 px-5 text-right">Report</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/70 text-xs">
-                {modules.map((mod) => {
-                  const stats = mod.stats || { completed: 0, inProgress: 0, notStarted: 0 };
-                  return (
-                    <tr key={mod.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-4 px-5 max-w-sm">
-                        <div className="font-bold text-slate-100 text-sm">{mod.title}</div>
-                        <p className="text-slate-400 text-xs line-clamp-1 mt-0.5">{mod.description || 'Cybersecurity training course'}</p>
-                      </td>
-                      <td className="py-4 px-5">
-                        <StatusBadge status={mod.isPublished ? 'PUBLISHED' : 'DRAFT'} />
-                      </td>
-                      <td className="py-4 px-5">
-                        <span className="font-bold text-emerald-400">{stats.completed} employee{stats.completed !== 1 ? 's' : ''}</span>
-                      </td>
-                      <td className="py-4 px-5">
-                        <span className="font-bold text-amber-400">{stats.inProgress} active</span>
-                      </td>
-                      <td className="py-4 px-5 text-right">
-                        <button
-                          onClick={() => setSelectedModuleId(mod.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 hover:border-blue-500 text-xs font-bold transition-all cursor-pointer"
-                        >
-                          <Icon name="eye" className="w-3.5 h-3.5" />
-                          <span>View Roster</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <div className="oversight-toolbar">
+          <div className="oversight-search">
+            <Icon name="search" className="w-4 h-4" />
+            <input type="search" aria-label="Search training modules" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search training modules by name..." />
           </div>
-        )}
-      </div>
+          <p>{searchTerm ? 'Summary reflects your search results.' : 'Summary reflects all displayed modules.'}</p>
+        </div>
 
-      {/* Progress Report Modal */}
-      <TrainingProgressModal
-        isOpen={!!selectedModuleId}
-        onClose={() => setSelectedModuleId(null)}
-        moduleId={selectedModuleId}
-      />
+        {loading ? <div className="oversight-state"><LoadingState message="Loading training progress reports..." /></div>
+          : error ? <div className="oversight-state"><ErrorState message={error} onRetry={fetchModules} /></div>
+          : modules.length === 0 ? <div className="oversight-state"><EmptyState title="No training modules found" description={searchTerm ? 'Try another course name or clear your search.' : 'Training modules will appear here once they are created.'} icon="academic-cap" /></div>
+          : <div className="oversight-table-scroll"><table className="oversight-table">
+            <caption className="sr-only">Training modules, publication status, recorded completions, active progress, and employee roster reports</caption>
+            <thead><tr><th scope="col">Training module</th><th scope="col">Status</th><th scope="col">Completed</th><th scope="col">In progress</th><th scope="col">Report</th></tr></thead>
+            <tbody>{modules.map(mod => {
+              const completed = mod.stats?.completed || 0;
+              const inProgress = mod.stats?.inProgress || 0;
+              return <tr key={mod.id}>
+                <td className="oversight-course"><div><span className="oversight-course-icon"><Icon name="academic-cap" className="w-4 h-4" /></span><div><h3>{mod.title}</h3><p>{mod.description || 'Cybersecurity training course'}</p></div></div></td>
+                <td data-label="Status"><span className={'oversight-status ' + (mod.isPublished ? 'published' : 'draft')}><i aria-hidden="true" />{mod.isPublished ? 'Published' : 'Draft'}</span></td>
+                <td data-label="Completed"><strong className="oversight-completed">{completed}</strong><span className="oversight-cell-detail">employee{completed !== 1 ? 's' : ''}</span></td>
+                <td data-label="In progress"><strong className="oversight-active">{inProgress}</strong><span className="oversight-cell-detail">active</span></td>
+                <td data-label="Report"><button type="button" className="oversight-roster" aria-label={'View employee roster for ' + mod.title} onClick={() => setSelectedModuleId(mod.id)}><Icon name="users" className="w-4 h-4" />View roster</button></td>
+              </tr>;
+            })}</tbody>
+          </table></div>}
+      </section>
+
+      <TrainingProgressModal isOpen={!!selectedModuleId} onClose={() => setSelectedModuleId(null)} moduleId={selectedModuleId} />
     </div>
   );
 }

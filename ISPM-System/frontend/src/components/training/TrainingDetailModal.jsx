@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { getTrainingRequest, startTrainingRequest, completeTrainingRequest } from '../../services/training.service.js';
 import Icon from '../common/Icon.jsx';
+import './TrainingDialogs.css';
 
 export default function TrainingDetailModal({
   isOpen,
@@ -106,21 +107,21 @@ export default function TrainingDetailModal({
   const completedAt = module?.userProgress?.completedAt;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="training-dialog-overlay fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className={(isEmployee ? 'employee-training-reader ' : '') + "training-dialog training-view-dialog bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"}
         role="dialog"
         aria-modal="true"
         aria-labelledby="training-detail-title"
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+        <div className="training-dialog-header px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 flex-shrink-0">
+          <div className="training-dialog-heading flex items-center space-x-3">
+            <div className="training-dialog-emblem w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
               <Icon name="academic-cap" className="w-5 h-5" />
             </div>
             <div>
-              <h2 id="training-detail-title" className="text-lg font-bold text-slate-800 line-clamp-1">
+              <h2 id="training-detail-title" className="text-lg font-bold text-slate-800">
                 {loading ? 'Loading Training Module...' : module?.title}
               </h2>
               <div className="flex items-center space-x-2 mt-0.5">
@@ -157,7 +158,7 @@ export default function TrainingDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="training-dialog-close text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Close"
           >
             <Icon name="close" className="w-5 h-5" />
@@ -165,7 +166,7 @@ export default function TrainingDetailModal({
         </div>
 
         {/* Content Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+        <div className="training-dialog-body p-6 overflow-y-auto flex-1 space-y-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400 space-y-3">
               <Icon name="refresh" className="w-8 h-8 animate-spin text-indigo-500" />
@@ -179,7 +180,7 @@ export default function TrainingDetailModal({
             <>
               {/* Summary Banner */}
               {module.description && (
-                <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-sm text-slate-700 leading-relaxed">
+                <div className="training-overview-block p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-sm text-slate-700 leading-relaxed">
                   <p className="font-semibold text-slate-800 mb-1 text-xs uppercase tracking-wider">
                     Overview & Objective
                   </p>
@@ -189,7 +190,7 @@ export default function TrainingDetailModal({
 
               {/* Resource URL Link if present */}
               {module.resourceUrl && (
-                <div className="flex items-center justify-between p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl">
+                <div className="training-resource-block flex items-center justify-between p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-xl">
                   <div className="flex items-center space-x-2 text-indigo-900 text-xs font-medium">
                     <Icon name="book" className="w-4 h-4 text-indigo-600" />
                     <span>External Course Materials & Reference Slides</span>
@@ -198,7 +199,7 @@ export default function TrainingDetailModal({
                     href={module.resourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center space-x-1"
+                    className="training-material-link px-3 py-1 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center space-x-1"
                   >
                     <span>Open Material</span>
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,14 +214,14 @@ export default function TrainingDetailModal({
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">
                   Training Curriculum
                 </h3>
-                <div className="p-5 bg-white border border-slate-200 rounded-xl text-slate-800 font-sans text-sm leading-relaxed whitespace-pre-wrap">
+                <div className="training-curriculum-block p-5 bg-white border border-slate-200 rounded-xl text-slate-800 font-sans text-sm leading-relaxed whitespace-pre-wrap">
                   {module.content || 'No content authored for this module yet.'}
                 </div>
               </div>
 
               {/* Employee Completion Status Banner */}
               {isEmployee && currentStatus === 'COMPLETED' && (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-3 text-emerald-900">
+                <div className="training-completed-banner p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-3 text-emerald-900">
                   <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 flex-shrink-0">
                     <Icon name="check" className="w-5 h-5" />
                   </div>
@@ -244,7 +245,7 @@ export default function TrainingDetailModal({
 
               {/* Deliberate Confirmation Dialog for Complete Training */}
               {showConfirmComplete && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3 animate-in fade-in duration-150">
+                <div className="training-completion-confirmation p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3 animate-in fade-in duration-150">
                   <div className="flex items-start space-x-3">
                     <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
                       <Icon name="shield-check" className="w-4 h-4" />
@@ -294,7 +295,7 @@ export default function TrainingDetailModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
+        <div className="training-dialog-footer px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
           <div className="text-xs text-slate-500">
             {module?.creator && (
               <span>Author: {module.creator.firstName} {module.creator.lastName}</span>
@@ -306,7 +307,7 @@ export default function TrainingDetailModal({
               id="close-detail-btn"
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+              className="training-dialog-secondary px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
             >
               Close
             </button>
@@ -320,7 +321,7 @@ export default function TrainingDetailModal({
                     type="button"
                     onClick={handleStartTraining}
                     disabled={isStarting}
-                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-indigo-600/20 disabled:opacity-60 transition-all flex items-center space-x-2"
+                    className="training-dialog-primary px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-indigo-600/20 disabled:opacity-60 transition-all flex items-center space-x-2"
                   >
                     {isStarting ? (
                       <>
