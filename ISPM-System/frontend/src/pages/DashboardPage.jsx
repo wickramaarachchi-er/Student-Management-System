@@ -12,6 +12,7 @@ import SystemAdminDashboard from '../components/dashboard/SystemAdminDashboard.j
 import ComplianceOfficerDashboard from '../components/dashboard/ComplianceOfficerDashboard.jsx';
 import TrainingAdminDashboard from '../components/dashboard/TrainingAdminDashboard.jsx';
 import EmployeeDashboard from '../components/dashboard/EmployeeDashboard.jsx';
+import Icon from '../components/common/Icon.jsx';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -62,7 +63,18 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-7 sm:space-y-8">
+    <div className={role === 'SYSTEM_ADMIN' ? 'admin-dashboard-page' : 'space-y-7 sm:space-y-8'}>
+      {role === 'SYSTEM_ADMIN' ? (
+        <div className="admin-page-header">
+          <div><span className="admin-eyebrow">ADMINISTRATION / OVERVIEW</span>
+            <h1>Welcome back, {user?.firstName || 'Administrator'}.</h1>
+            <p>Here?s what?s happening across your platform.</p>
+          </div>
+          <div className="admin-header-actions"><span className="admin-header-date">{currentDateFormatted}</span>
+            <button type="button" onClick={loadMetrics} disabled={loading} className="admin-refresh"><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing?' : 'Refresh'}</button>
+          </div>
+        </div>
+      ) : (<>
       {/* Page Header / Welcome Area */}
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 pb-6 border-b border-[#142347]">
         <div className="max-w-3xl">
@@ -85,6 +97,8 @@ export default function DashboardPage() {
           <span>{currentDateFormatted}</span>
         </div>
       </div>
+
+      </>)}
 
       {/* Loading State */}
       {loading && <LoadingState message="Retrieving live dashboard metrics…" rows={4} />}

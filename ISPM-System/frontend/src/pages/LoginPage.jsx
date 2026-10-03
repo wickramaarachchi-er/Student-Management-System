@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import Icon from '../components/common/Icon.jsx';
+import './LoginPage.css';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -110,48 +111,26 @@ export default function LoginPage() {
               Manage security policies, employee awareness, training and compliance from one secure platform.
             </p>
           </div>
-
-          {/* 3 Concise Capability Items */}
-          <div className="hidden sm:grid grid-cols-1 gap-4 pt-2 max-w-xl">
-            {/* Capability 1: Policy Management */}
-            <div className="flex items-start gap-3.5 p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-sm hover:border-slate-700/80 transition-colors">
-              <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                <Icon name="shield-check" className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-slate-100">Policy Management</h2>
-                <p className="text-xs text-slate-400 mt-0.5 leading-normal">
-                  Manage policy publishing, versioning and acknowledgements.
-                </p>
-              </div>
-            </div>
-
-            {/* Capability 2: Security Awareness */}
-            <div className="flex items-start gap-3.5 p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-sm hover:border-slate-700/80 transition-colors">
-              <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
-                <Icon name="academic-cap" className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-slate-100">Security Awareness</h2>
-                <p className="text-xs text-slate-400 mt-0.5 leading-normal">
-                  Deliver training and assess employee knowledge.
-                </p>
-              </div>
-            </div>
-
-            {/* Capability 3: Compliance Monitoring */}
-            <div className="flex items-start gap-3.5 p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-sm hover:border-slate-700/80 transition-colors">
-              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
-                <Icon name="chart" className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-sm font-semibold text-slate-100">Compliance Monitoring</h2>
-                <p className="text-xs text-slate-400 mt-0.5 leading-normal">
-                  Track organizational compliance and security activity.
-                </p>
-              </div>
+          <div className="login-story-content">
+            <p className="login-eyebrow"><span /> YOUR SECURITY WORKSPACE</p>
+            <h1>A stronger security<br />culture starts <em>here.</em></h1>
+            <p className="login-story-description">Bring your policies, people and compliance together. One workspace for a more security-aware organization.</p>
+            <div className="login-capabilities">
+              {[
+                ['book', 'Policies, made clear', 'Publish, manage and acknowledge security policies.'],
+                ['academic-cap', 'Awareness that matters', 'Build knowledge through training and assessments.'],
+                ['chart', 'Compliance in focus', 'Keep track of progress and security activity.'],
+              ].map(([icon, title, description]) => (
+                <div className="login-capability" key={title}>
+                  <span className="login-capability-icon"><Icon name={icon} /></span>
+                  <div><h2>{title}</h2><p>{description}</p></div>
+                </div>
+              ))}
             </div>
           </div>
+          <div className="login-story-footer"><Icon name="shield-check" /><span>Better awareness. Stronger protection.</span></div>
+          <div className="login-orbit login-orbit-one" aria-hidden="true" />
+          <div className="login-orbit login-orbit-two" aria-hidden="true" />
         </section>
 
         {/* ============================================================
@@ -285,17 +264,15 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+              <button type="submit" disabled={isSubmitting} className="login-submit">
+                {isSubmitting ? <><span className="login-spinner" aria-hidden="true" /> Signing in...</> : <>Sign in to workspace <span aria-hidden="true">&rarr;</span></>}
+              </button>
             </form>
-
-            {/* Bottom Security Footer Message */}
-            <div className="mt-8 pt-5 border-t border-slate-800/60 flex items-center justify-center gap-2 text-xs text-slate-500 font-medium">
-              <Icon name="shield-check" className="w-4 h-4 text-slate-500" />
-              <span>Authorized access only</span>
-            </div>
-
+            <p className="login-account-help">Need access? Contact your system administrator.</p>
+            <div className="login-form-footer"><Icon name="shield-check" /><span>For authorized users only</span></div>
           </div>
+          <p className="login-panel-footer">Information Security Policy &amp; Management System</p>
         </section>
-
       </div>
     </main>
   );

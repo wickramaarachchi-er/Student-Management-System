@@ -3,12 +3,18 @@
  * Unified dashboard shell containing responsive sidebar, header, and content area.
  */
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
 import Sidebar from '../components/layout/Sidebar.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
 import Icon from '../components/common/Icon.jsx';
 
 export default function DashboardLayout() {
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+  const isAdminOverview = user?.role === 'SYSTEM_ADMIN' && ['/dashboard', '/users'].includes(pathname);
+  const isAdminHelpdesk = user?.role === 'SYSTEM_ADMIN' && pathname === '/helpdesk';
+  const isAdminActivity = user?.role === 'SYSTEM_ADMIN' && ['/notifications', '/audit-logs'].includes(pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
