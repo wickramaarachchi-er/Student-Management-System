@@ -53,14 +53,14 @@ export default function Sidebar({ onItemClick }) {
   }
 
   return (
-    <aside className="w-[260px] bg-slate-950 border-r border-slate-800 flex flex-col h-full select-none">
+    <aside className="w-[260px] bg-[#040817] border-r border-[#122043] flex flex-col h-full select-none">
       {/* Brand / Logo Area */}
-      <div className="h-20 flex items-center gap-3.5 px-5 border-b border-slate-800/80 shrink-0">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-950/40 shrink-0">
+      <div className="h-20 flex items-center gap-3.5 px-5 border-b border-[#122043] shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-950/50 shrink-0">
           <Icon name="shield" className="w-5 h-5 text-white" />
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="font-bold text-[17px] text-white tracking-tight leading-tight truncate">
+          <span className="font-extrabold text-[17px] text-white tracking-tight leading-tight truncate">
             ISPM
           </span>
           <span className="text-xs text-slate-400 font-normal leading-tight truncate mt-0.5">
@@ -77,10 +77,10 @@ export default function Sidebar({ onItemClick }) {
             to={item.path}
             onClick={onItemClick}
             className={({ isActive }) =>
-              `group relative flex items-center gap-3 px-3.5 h-11 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+              `group relative flex items-center gap-3 px-3.5 h-11 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
                 isActive
-                  ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
-                  : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100 border border-transparent'
+                  ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm'
+                  : 'text-slate-400 hover:bg-[#08122c] hover:text-slate-100 border border-transparent'
               }`
             }
           >
@@ -101,13 +101,13 @@ export default function Sidebar({ onItemClick }) {
       </nav>
 
       {/* Bottom User Account & Sign Out Area */}
-      <div className="p-4 border-t border-slate-800/80 shrink-0 bg-slate-950">
+      <div className="p-4 border-t border-[#122043] shrink-0 bg-[#040817]">
         <div className="flex items-center gap-3 px-1">
           <div className="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-300 font-semibold text-xs flex items-center justify-center shadow-inner shrink-0">
             {initials}
           </div>
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-sm font-medium text-slate-200 truncate leading-snug">
+            <span className="text-sm font-semibold text-slate-200 truncate leading-snug">
               {fullName}
             </span>
             <span className="text-xs text-slate-500 truncate leading-tight mt-0.5">
@@ -119,7 +119,7 @@ export default function Sidebar({ onItemClick }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full h-10 px-3 rounded-lg text-sm font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-colors flex items-center gap-2.5 mt-3 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+          className="w-full h-10 px-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 border border-transparent hover:border-rose-500/20 transition-all flex items-center gap-2.5 mt-3 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
         >
           <Icon name="logout" className="w-4 h-4 shrink-0" />
           <span>Sign Out</span>
