@@ -63,7 +63,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={role === 'SYSTEM_ADMIN' ? 'admin-dashboard-page' : 'space-y-7 sm:space-y-8'}>
+    <div className={role === 'EMPLOYEE' ? 'employee-dashboard-page' : role === 'SYSTEM_ADMIN' ? 'admin-dashboard-page' : 'space-y-7 sm:space-y-8'}>
       {role === 'SYSTEM_ADMIN' ? (
         <div className="admin-page-header">
           <div><span className="admin-eyebrow">ADMINISTRATION / OVERVIEW</span>
@@ -74,6 +74,16 @@ export default function DashboardPage() {
             <button type="button" onClick={loadMetrics} disabled={loading} className="admin-refresh"><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing?' : 'Refresh'}</button>
           </div>
         </div>
+      ) : role === 'TRAINING_ADMIN' ? (
+        <header className="ta-page-header">
+          <div><span className="ta-eyebrow">TRAINING / OVERVIEW</span><h1>Training overview</h1><p>Welcome back, {user?.firstName || 'Administrator'}. Keep your team informed and prepared.</p></div>
+          <div className="ta-header-tools"><time dateTime={new Date().toISOString().slice(0, 10)}>{currentDateFormatted}</time><button type="button" onClick={loadMetrics} disabled={loading} className="ta-refresh"><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing…' : 'Refresh'}</button></div>
+        </header>
+      ) : role === 'EMPLOYEE' ? (
+        <header className="employee-page-header">
+          <div><span className="employee-header-eyebrow">MY WORKSPACE / OVERVIEW</span><h1>Welcome back, {user?.firstName || 'Employee'}.</h1><p>Your policies, training, and next steps — all in one place.</p></div>
+          <div className="employee-header-tools"><span>{currentDateFormatted}</span><button type="button" onClick={loadMetrics} disabled={loading}><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh'}</button></div>
+        </header>
       ) : (<>
       {/* Page Header / Welcome Area */}
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 pb-6 border-b border-[#142347]">

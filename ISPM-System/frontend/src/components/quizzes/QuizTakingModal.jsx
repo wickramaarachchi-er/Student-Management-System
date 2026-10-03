@@ -7,6 +7,8 @@
 import { useState, useEffect } from 'react';
 import { startQuizRequest, submitQuizRequest } from '../../services/quiz.service.js';
 import Icon from '../common/Icon.jsx';
+import './QuizAdminDialogs.css';
+import './EmployeeQuizDialog.css';
 
 export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitted }) {
   const [loading, setLoading] = useState(true);
@@ -103,17 +105,17 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
   const isAllAnswered = totalQuestions > 0 && answeredCount >= totalQuestions;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="quiz-admin-overlay fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="quiz-admin-dialog employee-quiz-dialog bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
         aria-labelledby="quiz-taking-title"
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+        <div className="quiz-admin-header px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 flex-shrink-0">
+          <div className="quiz-admin-heading flex items-center space-x-3">
+            <div className="quiz-admin-emblem w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
               <Icon name="clipboard-list" className="w-5 h-5" />
             </div>
             <div>
@@ -135,7 +137,7 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="quiz-admin-close text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Close"
           >
             <Icon name="close" className="w-5 h-5" />
@@ -143,7 +145,7 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+        <div className="quiz-admin-body p-6 overflow-y-auto flex-1 space-y-6">
           {loading ? (
             <div className="py-16 flex flex-col items-center justify-center text-slate-400 space-y-3">
               <Icon name="refresh" className="w-8 h-8 animate-spin text-indigo-500" />
@@ -157,7 +159,7 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
             /* ================= VIEW: SUBMISSION RESULT ================= */
             <div className="space-y-6 py-4 animate-in fade-in duration-200">
               <div
-                className={`p-6 rounded-2xl border text-center ${
+                className={`employee-quiz-result p-6 rounded-2xl border text-center ${
                   submissionResult.isPassed
                     ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
                     : 'bg-rose-50/80 border-rose-200 text-rose-900'
@@ -215,14 +217,14 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
             /* ================= VIEW: QUESTIONNAIRE ================= */
             <div className="space-y-5">
               {/* Question Navigation Chips */}
-              <div className="flex items-center space-x-1.5 overflow-x-auto pb-1">
+              <div className="employee-question-nav flex items-center space-x-1.5 overflow-x-auto pb-1">
                 {questions.map((q, idx) => {
                   const isAnswered = Boolean(selectedAnswers[q.id]);
                   const isCurrent = idx === currentQuestionIdx;
 
                   return (
                     <button
-                      key={q.id}
+                      key={q.id} aria-label={"Question " + (idx + 1) + (isAnswered ? ", answered" : ", unanswered")} aria-current={isCurrent ? "step" : undefined}
                       onClick={() => setCurrentQuestionIdx(idx)}
                       className={`w-8 h-8 rounded-xl text-xs font-bold transition-all flex items-center justify-center ${
                         isCurrent
@@ -239,7 +241,7 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
               </div>
 
               {/* Active Question Box */}
-              <div className="p-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-4">
+              <div className="employee-question-box p-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-4">
                 <div className="flex items-start space-x-3">
                   <span className="w-7 h-7 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
                     {currentQuestionIdx + 1}
@@ -255,7 +257,7 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
                 </div>
 
                 {/* Radio Options */}
-                <div className="space-y-2.5 pl-10">
+                <div className="employee-answer-options space-y-2.5 pl-10">
                   {(currentQ.options || []).map((opt) => {
                     const isSelected = selectedAnswers[currentQ.id] === opt.id;
 
@@ -293,7 +295,7 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
 
               {/* Confirmation Dialog before Final Submission */}
               {showConfirmSubmit && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3 animate-in fade-in duration-150">
+                <div className="employee-quiz-confirmation p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3 animate-in fade-in duration-150">
                   <div className="flex items-start space-x-3">
                     <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
                       <Icon name="shield-check" className="w-4 h-4" />
@@ -344,7 +346,7 @@ export default function QuizTakingModal({ isOpen, onClose, quizId, onQuizSubmitt
         </div>
 
         {/* Footer Navigation */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
+        <div className="quiz-admin-footer px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between flex-shrink-0">
           {submissionResult ? (
             <div className="w-full flex justify-end">
               <button

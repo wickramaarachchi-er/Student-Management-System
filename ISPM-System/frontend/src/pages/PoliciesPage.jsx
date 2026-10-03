@@ -5,6 +5,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 import { listPoliciesRequest } from '../services/policy.service.js';
+import Icon from '../components/common/Icon.jsx';
+import './EmployeePoliciesPage.css';
 
 // Modals
 import CreatePolicyModal from '../components/policies/CreatePolicyModal.jsx';
@@ -120,7 +122,7 @@ export default function PoliciesPage() {
   }, [policies]);
 
   return (
-    <div className="space-y-6">
+    <div className={isEmployee ? "employee-policies-page" : "space-y-6"}>
       {/* Toast Notification */}
       {toast && (
         <div
@@ -421,261 +423,34 @@ export default function PoliciesPage() {
       {/* ========================================================= */}
       {/* EMPLOYEE VIEW                                            */}
       {/* ========================================================= */}
-      {isEmployee && (
-        <>
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  Employee Compliance Portal
-                </span>
-                {user?.department && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                    Dept: {user.department}
-                  </span>
-                )}
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mt-1">
-                Security Policies & Acknowledgements
-              </h1>
-              <p className="text-sm text-slate-400 mt-1">
-                Review corporate security policies and complete required acknowledgements to maintain compliance.
-              </p>
-            </div>
-          </div>
+      {isEmployee && <>
+        <header className="ep-header"><div><span className="ep-eyebrow">MY WORKSPACE / POLICIES</span><h1>Security policies</h1><p>Read the latest guidance and keep your acknowledgements up to date.</p></div><div className="ep-header-tools">{user?.department && <span className="ep-department"><Icon name="users" className="w-4 h-4" />{user.department}</span>}<button type="button" className="ep-refresh" onClick={fetchPolicies} disabled={loading}><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh'}</button></div></header>
 
-          {/* Compliance Status Alert Banner */}
-          {employeeStats.pending > 0 ? (
-            <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/30 flex items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">⚠️</span>
-                <div>
-                  <h3 className="font-bold text-amber-300 text-sm">
-                    Action Required: {employeeStats.pending} Policy{employeeStats.pending > 1 ? 'ies' : ''} Awaiting Acknowledgement
-                  </h3>
-                  <p className="text-xs text-amber-400/80 mt-0.5">
-                    Please read and acknowledge the latest published versions to comply with university security standards.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setStatusFilter('pending')}
-                className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shrink-0"
-              >
-                View Pending ({employeeStats.pending})
-              </button>
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/20 flex items-center gap-3">
-              <span className="text-2xl">🛡️</span>
-              <div>
-                <h3 className="font-bold text-emerald-300 text-sm">
-                  All Applicable Policies Acknowledged
-                </h3>
-                <p className="text-xs text-emerald-400/80 mt-0.5">
-                  Great job! You are currently 100% compliant with all published information security policies.
-                </p>
-              </div>
-            </div>
-          )}
+        {!loading && !error && <section className="ep-summary" aria-label="Policy summary for current search and category">
+          {[
+            { label: 'Applicable policies', value: employeeStats.total, icon: 'book', tone: 'blue', detail: 'Within your search and category' },
+            { label: 'Acknowledged', value: employeeStats.acknowledged, icon: 'shield-check', tone: 'green', detail: 'Latest versions confirmed' },
+            { label: 'Awaiting review', value: employeeStats.pending, icon: 'clipboard-list', tone: 'amber', detail: 'Read and acknowledge to complete' },
+          ].map(stat => <article key={stat.label}><span className={'ep-stat-icon ' + stat.tone}><Icon name={stat.icon} className="w-5 h-5" /></span><h2>{stat.label}</h2><strong>{stat.value}</strong><p>{stat.detail}</p></article>)}
+        </section>}
 
-          {/* Employee KPI Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-sm">
-              <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Applicable Policies</div>
-              <div className="text-2xl font-bold text-white mt-1">{employeeStats.total}</div>
-              <div className="text-xs text-slate-500 mt-0.5">governing your role / department</div>
-            </div>
+        {!loading && !error && employeeStats.total > 0 && <div className={'ep-notice ' + (employeeStats.pending ? 'pending' : 'complete')}><span className="ep-notice-icon"><Icon name={employeeStats.pending ? 'book' : 'check'} className="w-5 h-5" /></span><div><h2>{employeeStats.pending ? employeeStats.pending + ' ' + (employeeStats.pending === 1 ? 'policy needs' : 'policies need') + ' your acknowledgement' : 'All policies in this view are acknowledged'}</h2><p>{employeeStats.pending ? 'Open each policy, read the document, and confirm your understanding.' : 'Your acknowledgements are up to date for this search and category.'}</p></div>{employeeStats.pending > 0 && <button type="button" onClick={() => setStatusFilter('pending')}>View pending <span aria-hidden="true">&#8594;</span></button>}</div>}
 
-            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/20 shadow-sm">
-              <div className="text-xs font-medium text-emerald-400 uppercase tracking-wider">Acknowledged</div>
-              <div className="text-2xl font-bold text-emerald-300 mt-1">{employeeStats.acknowledged}</div>
-              <div className="text-xs text-emerald-400/80 mt-0.5">{employeeStats.rate}% compliance rate</div>
-            </div>
+        <section className="ep-library" aria-labelledby="ep-library-title">
+          <div className="ep-library-heading"><div><h2 id="ep-library-title">Your policy library</h2><p>Policies relevant to your role and department.</p></div><div className="ep-tabs" role="group" aria-label="Filter by acknowledgement status">{[{ value: 'all', label: 'All', count: employeeStats.total }, { value: 'pending', label: 'Pending', count: employeeStats.pending }, { value: 'acknowledged', label: 'Acknowledged', count: employeeStats.acknowledged }].map(tab => <button key={tab.value} type="button" aria-pressed={statusFilter === tab.value} onClick={() => setStatusFilter(tab.value)}>{tab.label}<span>{loading || error ? '\u2014' : tab.count}</span></button>)}</div></div>
+          <div className="ep-toolbar"><div className="ep-search"><Icon name="search" className="w-4 h-4" /><input type="search" aria-label="Search security policies" placeholder="Search policy titles or descriptions..." value={search} onChange={e => setSearch(e.target.value)} /></div><select aria-label="Filter policies by category" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}><option value="all">All categories</option>{POLICY_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat.replaceAll('_', ' ')}</option>)}</select>{(search || categoryFilter !== 'all' || statusFilter !== 'all') && <button type="button" className="ep-clear" onClick={() => { setSearch(''); setCategoryFilter('all'); setStatusFilter('all'); }}>Clear filters</button>}</div>
 
-            <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 shadow-sm">
-              <div className="text-xs font-medium text-rose-400 uppercase tracking-wider">Pending Action</div>
-              <div className="text-2xl font-bold text-rose-300 mt-1">{employeeStats.pending}</div>
-              <div className="text-xs text-rose-400/80 mt-0.5">requires review & signature</div>
-            </div>
-          </div>
-
-          {/* Filter Bar */}
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
-            <div className="relative w-full md:w-80">
-              <input
-                type="text"
-                placeholder="Search policies..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-3.5 py-2 pl-9 bg-slate-800/80 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500"
-              />
-              <span className="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500"
-              >
-                <option value="all">All Categories</option>
-                {POLICY_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat.replace(/_/g, ' ')}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter('all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    statusFilter === 'all'
-                      ? 'bg-slate-700 text-white'
-                      : 'bg-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  All ({policies.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter('pending')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    statusFilter === 'pending'
-                      ? 'bg-amber-600 text-white font-bold'
-                      : 'bg-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Pending ({employeeStats.pending})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter('acknowledged')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    statusFilter === 'acknowledged'
-                      ? 'bg-emerald-600 text-white font-bold'
-                      : 'bg-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Acknowledged ({employeeStats.acknowledged})
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Policy Cards Grid */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p className="text-sm">Loading security policies...</p>
-            </div>
-          ) : employeeFilteredPolicies.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400">
-              <span className="text-3xl block mb-2">📋</span>
-              <h3 className="font-semibold text-white">No policies match your filter</h3>
-              <p className="text-xs text-slate-500 mt-1">Try modifying search or category filters.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {employeeFilteredPolicies.map((p) => {
-                const isAcked = Boolean(p.acknowledged || p.userAcknowledgement?.acknowledged);
-                const ackedAt = p.acknowledgedAt || p.userAcknowledgement?.acknowledgedAt;
-
-                return (
-                  <div
-                    key={p.id}
-                    className={`p-5 rounded-2xl border transition-all duration-200 flex flex-col justify-between shadow-xl ${
-                      isAcked
-                        ? 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                        : 'bg-slate-900/90 border-amber-500/30 hover:border-amber-500/50 shadow-amber-500/5'
-                    }`}
-                  >
-                    <div>
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between gap-2 pb-3">
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                          {p.category.replace(/_/g, ' ')}
-                        </span>
-
-                        {/* Status Badge */}
-                        {isAcked ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                            Acknowledged
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 animate-pulse">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                            Acknowledgement Required
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Title & Description */}
-                      <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
-                        {p.title}
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                        {p.description || 'Information security policy governing university operations.'}
-                      </p>
-
-                      {/* Meta Pills */}
-                      <div className="flex flex-wrap items-center gap-2 mt-4 text-xs text-slate-400">
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
-                          v{p.currentVersion?.versionNumber || p.version || '1.0'}
-                        </span>
-                        {p.targetDepartment ? (
-                          <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300">
-                            Dept: {p.targetDepartment}
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                            All Staff
-                          </span>
-                        )}
-                        {p.publishedAt && (
-                          <span className="text-slate-500">
-                            Published: {new Date(p.publishedAt).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Footer / Action */}
-                    <div className="pt-5 mt-4 border-t border-slate-800 flex items-center justify-between">
-                      <div className="text-xs">
-                        {isAcked && ackedAt ? (
-                          <span className="text-slate-500">
-                            Signed: <span className="text-slate-400">{new Date(ackedAt).toLocaleDateString()}</span>
-                          </span>
-                        ) : (
-                          <span className="text-amber-400 font-medium">Pending Confirmation</span>
-                        )}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setDetailPolicyId(p.id)}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                          isAcked
-                            ? 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20'
-                        }`}
-                      >
-                        <span>{isAcked ? '📖 Review Policy' : '✍️ Read & Acknowledge'}</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
+          {loading ? <div className="ep-state" role="status"><Icon name="refresh" className="w-6 h-6 animate-spin" /><h3>Loading security policies...</h3></div>
+            : error ? <div className="ep-state ep-error" role="alert"><h3>Unable to load policies</h3><p>{error}</p><button type="button" onClick={fetchPolicies}>Try again</button></div>
+            : employeeFilteredPolicies.length === 0 ? <div className="ep-state"><Icon name="book" className="w-6 h-6" /><h3>No policies in this view</h3><p>{search || categoryFilter !== 'all' || statusFilter !== 'all' ? 'Try another search or adjust your filters.' : 'Published policies relevant to your role will appear here.'}</p></div>
+            : <div className="ep-card-grid">{employeeFilteredPolicies.map(p => {
+              const isAcked = Boolean(p.acknowledged || p.userAcknowledgement?.acknowledged);
+              const ackedAt = p.acknowledgedAt || p.userAcknowledgement?.acknowledgedAt;
+              return <article key={p.id} className={'ep-policy-card ' + (isAcked ? 'acknowledged' : 'pending')}><div className="ep-card-badges"><span className="ep-category">{(p.category || 'GENERAL').replaceAll('_', ' ')}</span><span className={'ep-status ' + (isAcked ? 'acknowledged' : 'pending')}><Icon name={isAcked ? 'check' : 'book'} className="w-3 h-3" />{isAcked ? 'Acknowledged' : 'Review required'}</span></div><div className="ep-card-heading"><span className="ep-document-icon"><Icon name="book" className="w-5 h-5" /></span><h3>{p.title}</h3></div><p className="ep-card-description">{p.description || 'Information security guidance for your workplace.'}</p><div className="ep-card-meta"><span>Version {p.currentVersion?.versionNumber || p.version || '1.0'}</span><span>{p.targetDepartment || 'All staff'}</span>{p.publishedAt && <span>Published {new Date(p.publishedAt).toLocaleDateString()}</span>}</div><div className="ep-card-footer"><span>{isAcked ? ackedAt ? 'Acknowledged ' + new Date(ackedAt).toLocaleDateString() : 'Acknowledgement recorded' : 'Confirmation pending'}</span><button type="button" aria-label={(isAcked ? 'Review ' : 'Read and acknowledge ') + p.title} className={isAcked ? 'ep-secondary' : 'ep-primary'} onClick={() => setDetailPolicyId(p.id)}><Icon name={isAcked ? 'eye' : 'book'} className="w-4 h-4" />{isAcked ? 'Review policy' : 'Read & acknowledge'}</button></div></article>;
+            })}</div>}
+          {!loading && !error && <div className="ep-library-footer" role="status">Showing {employeeFilteredPolicies.length} {employeeFilteredPolicies.length === 1 ? 'policy' : 'policies'} &middot; Summary reflects your search and category.</div>}
+        </section>
+      </>}
 
       {/* ========================================================= */}
       {/* MODAL DIALOGS                                            */}

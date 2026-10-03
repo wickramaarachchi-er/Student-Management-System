@@ -1,0 +1,34 @@
+.employee-notifications { gap: 20px; }
+.employee-notifications .training-notifications-header { padding: 24px; border: 1px solid #20365c; border-radius: 16px; background: linear-gradient(115deg, #0b1930, #10294a); }
+.employee-notifications .training-notifications-header h1 { font-size: clamp(25px, 2.8vw, 32px); font-weight: 700; letter-spacing: -.8px; line-height: 1.3; }
+.employee-notifications .training-notifications-actions { flex-shrink: 0; }
+.employee-notifications .activity-card { border-radius: 14px; }
+.employee-notifications .activity-card-heading { padding: 22px; }
+.employee-notifications .activity-card-heading h2 { font-size: 18px; }
+.employee-notifications .notification-filters button { min-width: 60px; }
+.employee-notifications .activity-unread-summary { padding: 15px 18px; }
+.employee-notifications .notification-row { padding: 22px; border-left-width: 4px; gap: 18px; }
+.employee-notifications .notification-unread { background: #f5f9ff; }
+.employee-notifications .notification-read .notification-title h4 { color: #475569; }
+.employee-notifications .notification-content { gap: 14px; }
+.employee-notifications .notification-icon { width: 42px; height: 42px; border-radius: 12px; }
+.employee-notifications .notification-title { gap: 9px; margin-bottom: 8px; }
+.employee-notifications .notification-title h4 { font-size: 14px; line-height: 1.6; font-weight: 650; }
+.employee-notifications .notification-copy p { color: #526278; font-size: 12px; line-height: 1.9; }
+.employee-notifications .notification-date { font-size: 11px; margin-top: 10px; }
+.employee-notifications .notification-category { padding: 3px 7px; font-size: 9px; }
+.employee-notifications .notification-mark-read { margin-top: 3px; min-height: 34px; padding: 8px 11px; }
+.employee-notifications .activity-footer { padding: 16px 22px; }
+.employee-notifications .activity-card > .p-6 { padding: 24px; }
+.employee-notifications .activity-card > .p-6 > [class*="bg-slate-900/60"] { padding: 40px 20px; background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+.employee-notifications .activity-card > .p-6 > [class*="bg-slate-900/60"] > div:first-child { display: grid; place-items: center; width: 48px; height: 48px; background: #eff6ff; color: #2563eb; border-color: #bfdbfe; margin-bottom: 16px; }
+.employee-notifications .activity-card > .p-6 h3 { color: #172033; font-size: 16px; }
+.employee-notifications .activity-card > .p-6 p { margin-top: 8px; color: #64748b; font-size: 12px; line-height: 1.8; }
+.notification-action-error { padding: 12px 16px; background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; border-radius: 9px; font-size: 12px; line-height: 1.7; }
+@media (max-width: 760px) {
+  .employee-notifications .training-notifications-header { padding: 20px; }
+  .employee-notifications .activity-card-heading { padding: 18px 16px; }
+  .employee-notifications .notification-row { padding: 18px 16px; gap: 12px; }
+  .employee-notifications .notification-mark-read { margin-left: 56px; }
+  .employee-notifications .activity-footer { padding: 14px 16px; }
+}

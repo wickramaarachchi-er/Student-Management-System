@@ -6,7 +6,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 import { listTrainingRequest, publishTrainingRequest } from '../services/training.service.js';
 import Icon from '../components/common/Icon.jsx';
-import PageHeader from '../components/common/PageHeader.jsx';
+import { Link } from 'react-router-dom';
+import './TrainingPage.css';
+import './EmployeeTrainingPage.css';
 import StatusBadge from '../components/common/StatusBadge.jsx';
 import LoadingState from '../components/common/LoadingState.jsx';
 import ErrorState from '../components/common/ErrorState.jsx';
@@ -28,6 +30,7 @@ export default function TrainingPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [learningFilter, setLearningFilter] = useState('ALL');
 
   // Modals state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -83,8 +86,14 @@ export default function TrainingPage() {
     }
   };
 
+  const learningStatus = mod => mod.userProgress?.status || 'NOT_STARTED';
+  const filteredModules = modules.filter(mod => learningFilter === 'ALL' || learningStatus(mod) === learningFilter);
+  const completedCount = modules.filter(mod => learningStatus(mod) === 'COMPLETED').length;
+  const inProgressCount = modules.filter(mod => learningStatus(mod) === 'IN_PROGRESS').length;
+  const notStartedCount = modules.filter(mod => learningStatus(mod) === 'NOT_STARTED').length;
+
   return (
-    <div className="space-y-6">
+    <div className={isEmployee ? "employee-training-page" : isTrainingAdmin ? "training-page space-y-6" : "space-y-6"}>
       {/* Toast Notification */}
       {toastMessage && (
         <div className="p-4 bg-emerald-950/50 border border-emerald-800/60 text-emerald-300 text-xs font-semibold rounded-xl shadow-sm flex items-center justify-between">
@@ -92,52 +101,50 @@ export default function TrainingPage() {
             <Icon name="check" className="w-4 h-4 text-emerald-400" />
             <span>{toastMessage}</span>
           </div>
-          <button onClick={() => setToastMessage('')} className="text-emerald-400 hover:text-emerald-200 cursor-pointer">
+          <button aria-label="Dismiss notification" onClick={() => setToastMessage('')} className="text-emerald-400 hover:text-emerald-200 cursor-pointer">
             <Icon name="close" className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      <PageHeader
-        title={isTrainingAdmin ? 'Training Management & Curriculum' : 'Security Awareness Training'}
-        description={
-          isTrainingAdmin
-            ? 'Author cybersecurity courses, publish learning modules, and monitor employee training progress.'
-            : 'Engage with required cybersecurity training modules to protect company systems and data.'
-        }
-        icon="academic-cap"
-        action={
-          isTrainingAdmin ? (
-            <button
-              id="add-training-btn"
-              onClick={() => setIsCreateOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-950 cursor-pointer"
-            >
-              <Icon name="plus" className="w-4 h-4" />
-              <span>Add Training Module</span>
-            </button>
-          ) : null
-        }
-      />
+      {isEmployee ? <header className="et-header"><div><span className="et-eyebrow">MY WORKSPACE / LEARNING</span><h1>Security awareness training</h1><p>Build your security knowledge, one course at a time.</p></div><div className="et-header-actions"><Link to="/my-progress">My progress <span aria-hidden="true">&#8594;</span></Link><button type="button" onClick={fetchModules} disabled={loading}><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh'}</button></div></header> : <header className="training-header">
+        <div><span className="training-eyebrow">TRAINING / CATALOG</span><h1>{isTrainingAdmin ? 'Training catalog' : 'Security Awareness Training'}</h1><p>{isTrainingAdmin ? 'Create meaningful learning experiences. Build, publish, and manage your security curriculum.' : 'Explore your security awareness courses and continue learning.'}</p></div>
+        {isTrainingAdmin && <button id="add-training-btn" className="training-primary" onClick={() => setIsCreateOpen(true)}><Icon name="plus" className="w-4 h-4" />Add training module</button>}
+      </header>}
+      {isTrainingAdmin && <section className="training-intro"><span className="training-intro-icon"><Icon name="academic-cap" className="w-6 h-6" /></span><div><h2>Knowledge that keeps your team secure.</h2><p>Shape your curriculum, review drafts, and follow employee learning progress.</p></div><Link to="/training-progress">Learner progress <span aria-hidden="true">&#8599;</span></Link></section>}
 
+      {isTrainingAdmin && !loading && !error && <section className="training-summary" aria-label="Current catalog results">
+        <article><span className="training-summary-icon blue"><Icon name="academic-cap" className="w-5 h-5" /></span><span>Training modules</span><strong>{modules.length}</strong><p>{searchTerm || statusFilter !== 'all' ? 'Matching current filters' : 'In your curriculum'}</p></article>
+        <article><span className="training-summary-icon mint"><Icon name="check" className="w-5 h-5" /></span><span>Published modules</span><strong>{modules.filter(mod => mod.isPublished).length}</strong><p><i className="summary-live" />Available for employees</p></article>
+        <article><span className="training-summary-icon amber"><Icon name="pencil" className="w-5 h-5" /></span><span>Draft modules</span><strong>{modules.filter(mod => !mod.isPublished).length}</strong><p><i className="summary-draft" />Ready for your review</p></article>
+      </section>}
+
+      {isEmployee && !loading && !error && <section className="et-summary" aria-label="Learning summary for current search">
+        {[{label:'Available courses',value:modules.length,icon:'book',tone:'blue',detail:'Matching your current search'},{label:'Completed',value:completedCount,icon:'check',tone:'green',detail:'Courses you have finished'},{label:'In progress',value:inProgressCount,icon:'trending-up',tone:'amber',detail:'Continue where you left off'},{label:'Not started',value:notStartedCount,icon:'academic-cap',tone:'violet',detail:'Ready for you to explore'}].map(stat=><article key={stat.label}><span className={'et-stat-icon '+stat.tone}><Icon name={stat.icon} className="w-5 h-5" /></span><h2>{stat.label}</h2><strong>{stat.value}</strong><p>{stat.detail}</p></article>)}
+      </section>}
+
+      <div className={isEmployee ? 'et-collection' : isTrainingAdmin ? 'training-collection' : undefined}>
+      {isTrainingAdmin && <div className="training-collection-header"><div><h2>Your curriculum</h2><p>Browse your modules and manage their publication.</p></div><button type="button" onClick={fetchModules} disabled={loading} className="training-refresh"><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh'}</button></div>}
+      {isEmployee && <div className="et-collection-heading"><div><h2>Your learning library</h2><p>Open a course to read its content and record your completion.</p></div><div className="et-tabs" role="group" aria-label="Filter courses by learning status">{[{value:'ALL',label:'All courses'},{value:'NOT_STARTED',label:'Not started'},{value:'IN_PROGRESS',label:'In progress'},{value:'COMPLETED',label:'Completed'}].map(tab=><button type="button" key={tab.value} aria-pressed={learningFilter===tab.value} onClick={()=>setLearningFilter(tab.value)}>{tab.label}</button>)}</div></div>}
       {/* Filter / Search Bar */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="training-toolbar bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1">
           <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
-            type="text"
+            type="search"
+            aria-label="Search training modules"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search training modules by title or keywords…"
+            placeholder="Search modules by title or keyword..."
             className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
 
         {isTrainingAdmin && (
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status:</label>
+            <label htmlFor="training-status" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status:</label>
             <select
-              value={statusFilter}
+              id="training-status" value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-100 focus:outline-none focus:border-blue-500"
             >
@@ -151,7 +158,7 @@ export default function TrainingPage() {
 
       {/* Main Content View */}
       {loading ? (
-        <LoadingState message="Loading training modules…" rows={4} />
+        <LoadingState message="Loading training modules..." rows={4} />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchModules} />
       ) : modules.length === 0 ? (
@@ -159,133 +166,43 @@ export default function TrainingPage() {
           title="No training modules found"
           description={
             isTrainingAdmin
-              ? 'Click "Add Training Module" to author your first awareness module.'
-              : 'There are no active security training courses assigned at this time.'
+              ? (searchTerm || statusFilter !== 'all' ? 'Try another keyword or choose All Modules to broaden your results.' : 'Add a training module to start building your security curriculum.')
+              : searchTerm ? 'Try another keyword to find your course.' : 'There are no active security training courses assigned at this time.'
           }
           icon="academic-cap"
         />
       ) : isTrainingAdmin ? (
-        /* ================= TRAINING ADMIN TABLE VIEW ================= */
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-5">Course Module</th>
-                  <th className="py-3.5 px-5">Status</th>
-                  <th className="py-3.5 px-5">Employee Progress</th>
-                  <th className="py-3.5 px-5">Created / Author</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/70 text-xs">
-                {modules.map((mod) => (
-                  <tr key={mod.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-4 px-5 max-w-sm">
-                      <div className="font-bold text-slate-100 text-sm">{mod.title}</div>
-                      <p className="text-slate-400 text-xs line-clamp-1 mt-0.5">{mod.description || 'No description provided.'}</p>
-                      {mod.resourceUrl && (
-                        <div className="mt-1 flex items-center gap-1 text-[11px] text-blue-400 font-medium">
-                          <Icon name="book" className="w-3.5 h-3.5" />
-                          <span>External resources attached</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-4 px-5">
-                      <StatusBadge status={mod.isPublished ? 'PUBLISHED' : 'DRAFT'} />
-                    </td>
-                    <td className="py-4 px-5">
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="text-emerald-400 font-bold">✓ {mod.stats?.completed || 0}</span>
-                        <span className="text-amber-400 font-bold">⋯ {mod.stats?.inProgress || 0}</span>
-                        <button
-                          onClick={() => setProgressModuleId(mod.id)}
-                          className="text-blue-400 hover:text-blue-300 font-semibold hover:underline text-[11px] cursor-pointer"
-                        >
-                          View Report →
-                        </button>
-                      </div>
-                    </td>
-                    <td className="py-4 px-5 text-slate-400">
-                      <div>{new Date(mod.createdAt).toLocaleDateString()}</div>
-                      <div className="text-[11px] text-slate-500">{mod.creator ? `${mod.creator.firstName} ${mod.creator.lastName}` : 'System'}</div>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => setDetailModuleId(mod.id)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer" title="View Curriculum"><Icon name="eye" className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setEditingModule(mod)} className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer" title="Edit Module"><Icon name="pencil" className="w-3.5 h-3.5" /></button>
-                        {!mod.isPublished ? (
-                          <button onClick={() => handlePublish(mod)} className="px-2.5 py-1.5 rounded-lg bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 hover:border-emerald-500 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Publish for employees">
-                            <Icon name="check" className="w-3.5 h-3.5" /><span>Publish</span>
-                          </button>
-                        ) : (
-                          <button onClick={() => setArchivingModule(mod)} className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/30 hover:border-amber-500 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Deactivate">
-                            <Icon name="power" className="w-3.5 h-3.5" /><span>Deactivate</span>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <section className="training-catalog" aria-label="Training modules">
+          <div className="training-result-count" role="status">{modules.length} {modules.length === 1 ? 'module' : 'modules'}{searchTerm || statusFilter !== 'all' ? ' matching your filters' : ' in your catalog'}</div>
+          <div className="training-table-scroll"><table className="training-table"><caption className="sr-only">Training curriculum, publication status, employee progress, authors, and management actions</caption><thead><tr><th scope="col">Course module</th><th scope="col">Status</th><th scope="col">Employee progress</th><th scope="col">Created / Author</th><th scope="col">Actions</th></tr></thead><tbody>
+            {modules.map(mod => <tr key={mod.id} data-module-card={mod.id}>
+              <td className="training-module-cell"><button className="training-module-title" onClick={() => setDetailModuleId(mod.id)}>{mod.title}</button><p>{mod.description || 'No description provided. Edit this module to add a learning objective.'}</p><div className="training-resource"><Icon name="book" className="w-3.5 h-3.5" />{mod.resourceUrl ? 'Learning resources attached' : 'Training content'}</div></td>
+              <td><span className={'training-status ' + (mod.isPublished ? 'published' : 'draft')}><i />{mod.isPublished ? 'Published' : 'Draft'}</span></td>
+              <td><div className="training-table-progress"><span><i className="completed" />Completed <strong>{mod.stats?.completed || 0}</strong></span><span><i className="in-progress" />In progress <strong>{mod.stats?.inProgress || 0}</strong></span><button onClick={() => setProgressModuleId(mod.id)}>View report <span aria-hidden="true">&#8599;</span></button></div></td>
+              <td><div className="training-author"><span className="training-avatar">{mod.creator?.firstName?.charAt(0) || 'S'}{mod.creator?.lastName?.charAt(0) || ''}</span><div><strong>{mod.creator ? mod.creator.firstName + ' ' + mod.creator.lastName : 'System'}</strong><span>{new Date(mod.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div></div></td>
+              <td><div className="training-course-actions"><button onClick={() => setDetailModuleId(mod.id)} className="training-icon-button" aria-label={'View ' + mod.title} title="View curriculum"><Icon name="eye" className="w-4 h-4" /></button><button onClick={() => setEditingModule(mod)} className="training-edit" aria-label={'Edit ' + mod.title} title="Edit module"><Icon name="pencil" className="w-4 h-4" /></button>{!mod.isPublished ? <button onClick={() => handlePublish(mod)} className="training-publish" aria-label={'Publish ' + mod.title} title="Publish"><Icon name="check" className="w-4 h-4" /><span>Publish</span></button> : <button onClick={() => setArchivingModule(mod)} className="training-deactivate" aria-label={'Deactivate ' + mod.title} title="Deactivate"><Icon name="power" className="w-4 h-4" /><span>Deactivate</span></button>}</div></td>
+            </tr>)}
+          </tbody></table></div>
+        </section>
       ) : (
-        /* ================= EMPLOYEE COURSE CATALOG VIEW ================= */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {modules.map((mod) => {
-            const status = mod.userProgress?.status || 'NOT_STARTED';
-            const isCompleted = status === 'COMPLETED';
-            const isInProgress = status === 'IN_PROGRESS';
-            const accentColor = isCompleted ? 'bg-emerald-500' : isInProgress ? 'bg-amber-500' : 'bg-blue-500';
-            const badgeStatus = isCompleted ? 'COMPLETED' : isInProgress ? 'IN_PROGRESS' : 'NOT_STARTED';
-
-            return (
-              <div
-                key={mod.id}
-                data-module-card={mod.id}
-                className="bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 hover:shadow-md transition-all flex flex-col overflow-hidden"
-              >
-                <div className={`h-1.5 w-full ${accentColor}`} />
-
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <StatusBadge status={badgeStatus} />
-                      <span className="text-[11px] text-slate-500">{new Date(mod.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <h3 className="text-base font-bold text-slate-100 line-clamp-2">{mod.title}</h3>
-                    <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
-                      {mod.description || 'Review essential cybersecurity guidelines and policies in this interactive training module.'}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-                    <div className="text-[11px] text-slate-500">
-                      {mod.resourceUrl ? <span className="text-blue-400 font-medium">Resources attached</span> : <span>Curriculum ready</span>}
-                    </div>
-                    <button
-                      data-action-btn={mod.id}
-                      onClick={() => setDetailModuleId(mod.id)}
-                      className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                        isCompleted
-                          ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                          : isInProgress
-                          ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm'
-                          : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
-                      }`}
-                    >
-                      <span>{isCompleted ? 'Review' : isInProgress ? 'Resume' : 'Start Training'}</span>
-                      <Icon name="arrow-right" className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <section className="et-catalog" aria-label="Available training courses">
+          <p className="et-result-count" role="status">{filteredModules.length} {filteredModules.length===1?'course':'courses'} in this view</p>
+          {filteredModules.length===0 ? <div className="et-empty"><Icon name="academic-cap" className="w-6 h-6" /><h3>No courses with this status</h3><p>Choose another status to explore your learning library.</p><button type="button" onClick={()=>setLearningFilter('ALL')}>View all courses</button></div> : <div className="et-card-grid">{filteredModules.map(mod=>{
+            const status=learningStatus(mod);
+            const completed=status==='COMPLETED';
+            const active=status==='IN_PROGRESS';
+            const tone=completed?'completed':active?'active':'new';
+            return <article key={mod.id} data-module-card={mod.id} className={'et-course-card '+tone}>
+              <div className="et-course-top"><span className="et-course-icon"><Icon name="academic-cap" className="w-6 h-6" /></span><span className={'et-status '+tone}><Icon name={completed?'check':active?'trending-up':'book'} className="w-3 h-3" />{completed?'Completed':active?'In progress':'Not started'}</span></div>
+              <h3>{mod.title}</h3><p className="et-course-description">{mod.description||'Explore essential security practices and strengthen your awareness.'}</p>
+              <div className="et-course-meta"><span><Icon name="book" className="w-3.5 h-3.5" />{mod.resourceUrl?'Resources included':'Course content'}</span>{completed&&mod.userProgress?.completedAt&&<span>Completed {new Date(mod.userProgress.completedAt).toLocaleDateString()}</span>}</div>
+              <div className="et-course-footer"><span>{completed?'Revisit whenever you need':active?'Continue your learning':'Ready when you are'}</span><button type="button" data-action-btn={mod.id} aria-label={(completed?'Review ':active?'Resume ':'Start ')+mod.title} onClick={()=>setDetailModuleId(mod.id)} className={completed?'et-secondary':'et-primary'}>{completed?'Review course':active?'Resume course':'Start training'}<span aria-hidden="true">&#8594;</span></button></div>
+            </article>;
+          })}</div>}
+        </section>
       )}
+
+      </div>
 
       {/* Modals */}
       <CreateTrainingModal

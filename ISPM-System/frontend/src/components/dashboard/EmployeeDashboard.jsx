@@ -4,8 +4,8 @@
  */
 import { Link } from 'react-router-dom';
 import Icon from '../common/Icon.jsx';
-import StatCard from '../common/StatCard.jsx';
-import StatusBadge from '../common/StatusBadge.jsx';
+import './EmployeeDashboard.css';
+
 
 export default function EmployeeDashboard({ data }) {
   const { metrics, attentionItems = [] } = data || {};
@@ -30,133 +30,51 @@ export default function EmployeeDashboard({ data }) {
     { label: 'Notifications', path: '/notifications', icon: 'bell', desc: 'Check personal reminders and security alerts' },
   ];
 
+  const score = Math.min(100, Math.max(0, Number(ownCompliancePercentage) || 0));
+  const progressRows = [
+    { label: 'Policy acknowledgements', completed: acknowledgedPolicyCount, total: acknowledgedPolicyCount + policiesRequiringAcknowledgement, tone: 'blue' },
+    { label: 'Training modules', completed: trainingCompletedCount, total: trainingCompletedCount + trainingInProgressCount + trainingNotStartedCount, tone: 'green' },
+    { label: 'Knowledge quizzes', completed: quizzesPassed, total: quizzesPassed + quizzesOutstanding, tone: 'violet' },
+  ];
+  const cards = [
+    { label: 'My compliance', value: score + '%', detail: complianceStatus.replaceAll('_', ' ').toLowerCase(), icon: 'shield-check', tone: 'blue' },
+    { label: 'Policies pending', value: policiesRequiringAcknowledgement, detail: acknowledgedPolicyCount + ' acknowledged', icon: 'book', tone: 'amber' },
+    { label: 'Training completed', value: trainingCompletedCount, detail: trainingInProgressCount + ' in progress ? ' + trainingNotStartedCount + ' not started', icon: 'academic-cap', tone: 'green' },
+    { label: 'Quizzes passed', value: quizzesPassed, detail: quizzesOutstanding + ' assessments outstanding', icon: 'award', tone: 'violet' },
+  ];
+  const itemIcons = { POLICY: 'book', TRAINING: 'academic-cap', QUIZ: 'clipboard-list', NOTIFICATION: 'bell', HELPDESK: 'helpdesk' };
+
   return (
-    <div className="space-y-10 sm:space-y-12">
-      {/* Primary Personal Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-        <StatCard
-          title="My Compliance Score"
-          value={`${ownCompliancePercentage}%`}
-          subtitle={`Status: ${complianceStatus.replace('_', ' ')}`}
-          icon="shield-check"
-          iconBg={
-            ownCompliancePercentage === 100
-              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-              : 'bg-[#392408] text-[#fbbf24] border-[#784d12]'
-          }
-          trend={ownCompliancePercentage === 100 ? 'Fully Compliant' : 'Outstanding Action'}
-          trendType={ownCompliancePercentage === 100 ? 'positive' : 'warning'}
-        />
-        <StatCard
-          title="Policies Pending"
-          value={policiesRequiringAcknowledgement}
-          subtitle={`${acknowledgedPolicyCount} policies acknowledged`}
-          icon="book"
-          iconBg="bg-[#392408] text-[#fbbf24] border-[#784d12]"
-          trend={policiesRequiringAcknowledgement === 0 ? 'Up to Date' : 'Signature Due'}
-          trendType={policiesRequiringAcknowledgement === 0 ? 'positive' : 'warning'}
-        />
-        <StatCard
-          title="Training Completed"
-          value={trainingCompletedCount}
-          subtitle={`${trainingInProgressCount} in progress, ${trainingNotStartedCount} unstarted`}
-          icon="academic-cap"
-          iconBg="bg-[#0b2447] text-[#60a5fa] border-[#1d4ed8]/40"
-        />
-        <StatCard
-          title="Quizzes Passed"
-          value={quizzesPassed}
-          subtitle={`${quizzesOutstanding} outstanding assessments`}
-          icon="clipboard-list"
-          iconBg="bg-[#28114b] text-[#c084fc] border-[#7e22ce]/40"
-        />
+    <div className="employee-dashboard">
+      <section className="employee-stats" aria-label="My security overview">
+        {cards.map(card => <article key={card.label}><span className={'employee-stat-icon ' + card.tone}><Icon name={card.icon} className="w-5 h-5" /></span><h2>{card.label}</h2><strong>{card.value}</strong><p>{card.detail}</p></article>)}
+      </section>
+
+      <div className="employee-workspace">
+        <section className="employee-panel employee-attention" aria-labelledby="employee-attention-title">
+          <div className="employee-panel-heading"><div><span className="employee-section-eyebrow">YOUR NEXT STEPS</span><h2 id="employee-attention-title">Needs your attention</h2><p>Requirements and updates from your security portal.</p></div><span className="employee-count">{attentionItems.length} item{attentionItems.length !== 1 ? 's' : ''}</span></div>
+          {attentionItems.length === 0 ? <div className="employee-all-clear"><span><Icon name="check" className="w-6 h-6" /></span><h3>You're all caught up</h3><p>No pending actions or updates right now.</p><Link to="/my-progress">View my progress <span aria-hidden="true">?</span></Link></div>
+            : <div className="employee-attention-list">{attentionItems.map(item => <article key={item.id} className="employee-attention-row">
+              <span className="employee-item-icon"><Icon name={itemIcons[item.type] || 'shield'} className="w-4 h-4" /></span>
+              <div className="employee-item-copy"><span className="employee-item-type">{item.type.toLowerCase()}</span><h3>{item.title}</h3><p>{item.detail}</p></div>
+              <Link to={item.link} className="employee-action-link" aria-label={'Take action: ' + item.title}>Take action <span aria-hidden="true">?</span></Link>
+            </article>)}</div>}
+        </section>
+
+        <aside className="employee-panel employee-progress" aria-labelledby="employee-progress-title">
+          <div className="employee-panel-heading"><div><span className="employee-section-eyebrow">PERSONAL SCORECARD</span><h2 id="employee-progress-title">Your security progress</h2><p>Small steps toward a safer workplace.</p></div></div>
+          <div className="employee-progress-body">
+            <div className="employee-score"><div><span>Overall compliance</span><strong>{score}%</strong></div><progress max="100" value={score} aria-label="Overall compliance" /><p>{complianceStatus.replaceAll('_', ' ').toLowerCase()}</p></div>
+            <div className="employee-progress-rows">{progressRows.map(row => <div key={row.label} className={'employee-progress-row ' + row.tone}><div><span>{row.label}</span><strong>{row.completed} / {row.total}</strong></div>{row.total > 0 ? <progress max={row.total} value={row.completed} aria-label={row.label} /> : <div className="employee-no-requirements">No current requirements</div>}</div>)}</div>
+            <Link to="/my-progress" className="employee-progress-link">View detailed progress <span aria-hidden="true">?</span></Link>
+          </div>
+          <div className="employee-support"><Icon name="helpdesk" className="w-5 h-5" /><div><h3>Need a hand?</h3><p>Ask a security question or report a concern.</p><Link to="/helpdesk">Open the helpdesk <span aria-hidden="true">?</span></Link></div></div>
+        </aside>
       </div>
 
-      {/* Dynamic "What Needs Your Attention" Section */}
-      <div className="space-y-5">
-        <div className="flex items-center justify-between pb-2 border-b border-[#142347]/60">
-          <div>
-            <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">
-              WHAT NEEDS YOUR ATTENTION
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Action items derived live from your current compliance requirements
-            </p>
-          </div>
-          <span className="text-xs sm:text-sm text-slate-300 font-semibold tracking-wide bg-[#060e22] px-3.5 py-1.5 rounded-full border border-[#142347]">
-            {attentionItems.length} {attentionItems.length === 1 ? 'Requirement' : 'Requirements'} Due
-          </span>
-        </div>
-
-        {attentionItems.length === 0 ? (
-          <div className="p-10 text-center bg-[#060e22] rounded-2xl border border-[#142347] my-3">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-              <Icon name="check" className="w-7 h-7" />
-            </div>
-            <h3 className="text-lg font-bold text-white">You are 100% Compliant!</h3>
-            <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-              All required security policies have been acknowledged, awareness modules completed, and assessments passed.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3.5">
-            {attentionItems.map((item) => (
-              <div
-                key={item.id}
-                className="px-6 py-5 rounded-2xl bg-[#060e22] hover:bg-[#091533] border border-[#142347] flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all shadow-sm"
-              >
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-950/80 border border-sky-500/40 text-sky-400 text-xs font-extrabold uppercase tracking-wide shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.8)]" />
-                      {item.type}
-                    </span>
-                    <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">{item.title}</h3>
-                  </div>
-                  <p className="text-xs sm:text-sm text-slate-400 pl-0.5">{item.detail}</p>
-                </div>
-                <Link
-                  to={item.link}
-                  className="inline-flex items-center justify-center text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white shadow-lg shadow-blue-950/60 transition-all shrink-0 whitespace-nowrap"
-                >
-                  Take Action →
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Security Portal Navigation Section */}
-      <div className="space-y-5 pt-2">
-        <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider pb-2 border-b border-[#142347]/60">
-          SECURITY PORTAL NAVIGATION
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {quickActions.map((action, idx) => (
-            <Link
-              key={idx}
-              to={action.path}
-              className="p-6 rounded-2xl bg-[#060e22] hover:bg-[#091533] border border-[#142347] hover:border-blue-500/50 transition-all flex flex-col justify-between group shadow-sm min-h-[150px]"
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-2.5">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                    <Icon name={action.icon} className="w-5 h-5" />
-                  </div>
-                  <span className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">
-                    {action.label}
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mt-2">{action.desc}</p>
-              </div>
-              <span className="text-xs sm:text-sm text-blue-400 font-semibold mt-5 inline-flex items-center gap-1 group-hover:translate-x-1.5 transition-transform">
-                Launch →
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
+      <section className="employee-shortcuts" aria-labelledby="employee-shortcuts-title"><div className="employee-shortcuts-heading"><h2 id="employee-shortcuts-title">Explore your security portal</h2><p>Everything you need to stay informed and prepared.</p></div>
+        <div className="employee-shortcut-grid">{quickActions.map(action => <Link key={action.path} to={action.path} className="employee-shortcut"><span className="employee-shortcut-icon"><Icon name={action.icon} className="w-5 h-5" /></span><div><h3>{action.label}</h3><p>{action.desc}</p></div><span className="employee-shortcut-arrow" aria-hidden="true">?</span></Link>)}</div>
+      </section>
     </div>
   );
 }

@@ -11,6 +11,8 @@ import {
 } from '../services/notification.service.js';
 import { useAuth } from '../hooks/useAuth.js';
 import './AdminActivityPages.css';
+import './TrainingNotificationsPage.css';
+import './EmployeeNotificationsPage.css';
 import Icon from '../components/common/Icon.jsx';
 import PageHeader from '../components/common/PageHeader.jsx';
 import LoadingState from '../components/common/LoadingState.jsx';
@@ -31,12 +33,16 @@ const TYPE_META = {
 export default function NotificationsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'SYSTEM_ADMIN';
+  const isTrainingAdmin = user?.role === 'TRAINING_ADMIN';
+  const isEmployee = user?.role === 'EMPLOYEE';
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filterRead, setFilterRead] = useState('');
   const [markingAll, setMarkingAll] = useState(false);
+  const [markingId, setMarkingId] = useState(null);
+  const [actionError, setActionError] = useState('');
 
   const fetchNotificationsData = async () => {
     setLoading(true);
@@ -68,6 +74,9 @@ export default function NotificationsPage() {
   }, [filterRead]);
 
   const handleMarkOneRead = async (id) => {
+    if (markingId || markingAll) return;
+    setMarkingId(id);
+    setActionError('');
     try {
       const res = await markAsReadRequest(id);
       if (res.ok && res.data?.success) {
@@ -75,30 +84,44 @@ export default function NotificationsPage() {
           filterRead === 'false' ? prev.filter(n => n.id !== id) : prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
         );
         setUnreadCount((prev) => Math.max(0, prev - 1));
+      } else {
+        setActionError(res.data?.message || 'Could not mark this notification as read. Please try again.');
       }
     } catch {
-      // silently fail — non-critical
+      setActionError('A network error occurred. Please try marking the notification as read again.');
+    } finally {
+      setMarkingId(null);
     }
   };
 
   const handleMarkAllRead = async () => {
+    if (markingAll || markingId) return;
+    setActionError('');
     setMarkingAll(true);
     try {
       const res = await markAllAsReadRequest();
       if (res.ok && res.data?.success) {
         setNotifications((prev) => filterRead === 'false' ? [] : prev.map((n) => ({ ...n, isRead: true })));
         setUnreadCount(0);
+      } else {
+        setActionError(res.data?.message || 'Could not mark notifications as read. Please try again.');
       }
     } catch {
-      // silently fail
+      setActionError('A network error occurred. Please try marking all notifications as read again.');
     } finally {
       setMarkingAll(false);
     }
   };
 
   return (
-    <div className={isAdmin ? "admin-activity notifications-centre" : "space-y-6"}>
-      <PageHeader
+    <div className={isEmployee ? 'training-notifications employee-notifications' : isTrainingAdmin ? 'training-notifications' : isAdmin ? "admin-activity notifications-centre" : "space-y-6"}>
+      {isTrainingAdmin || isEmployee ? <header className="training-notifications-header">
+        <div><span className="training-notifications-eyebrow">{isEmployee ? 'MY WORKSPACE / NOTIFICATIONS' : 'TRAINING / NOTIFICATIONS'}</span><h1>{isEmployee ? 'My notifications' : 'Notification centre'}</h1><p>{isEmployee ? 'Keep up with policy reminders, training updates, and support replies.' : 'Stay up to date with training assignments, quiz results, and system updates.'}</p></div>
+        <div className="training-notifications-actions">
+          <button type="button" className="training-notifications-refresh" onClick={fetchNotificationsData} disabled={loading || markingAll || Boolean(markingId)}><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing...' : 'Refresh'}</button>
+          {unreadCount > 0 && <button type="button" className="training-notifications-primary" onClick={handleMarkAllRead} disabled={markingAll || loading || Boolean(markingId)}><Icon name="check" className="w-4 h-4" />{markingAll ? 'Updating...' : 'Mark all as read'}</button>}
+        </div>
+      </header> : <PageHeader
         title="Notifications"
         description="System alerts, policy update notices, training assignments, and helpdesk status updates."
         icon="bell"
@@ -114,16 +137,18 @@ export default function NotificationsPage() {
             </button>
           ) : null
         }
-      />
+      />}
+
+      {actionError && <div className="notification-action-error" role="alert">{actionError}</div>}
 
       {/* Unread Badge Summary */}
-      {unreadCount > 0 && (
+      {unreadCount > 0 && (!(isTrainingAdmin || isEmployee) || (!loading && !error)) && (
         <div className="activity-unread-summary bg-blue-950/40 border border-blue-800/60 rounded-xl px-5 py-3.5 flex items-center gap-3 text-sm">
           <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
           <span className="font-bold text-blue-200">
             {unreadCount} unread {unreadCount === 1 ? 'notification' : 'notifications'}
           </span>
-          <span className="text-blue-300/70 text-xs">Click any unread notification to mark it read.</span>
+          <span className="text-blue-300/70 text-xs">{isEmployee ? 'Review the updates below and mark them as read when finished.' : 'Click any unread notification to mark it read.'}</span>
         </div>
       )}
 
@@ -131,9 +156,7 @@ export default function NotificationsPage() {
       <div className="activity-card bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
         {/* Filter Tabs */}
         <div className="activity-card-heading px-6 py-4 border-b border-slate-800 flex items-center justify-between flex-wrap gap-3">
-          <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
-            Notification history
-          </h2>
+          <div><h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">{isEmployee ? 'Your notification inbox' : 'Notification history'}</h2>{(isTrainingAdmin || isEmployee) && <p className="training-notifications-list-hint">Your latest alerts, with unread updates highlighted.</p>}</div>
           <div className="notification-filters flex items-center gap-2 text-xs" role="group" aria-label="Filter notifications">
             {[
               { value: '', label: 'All' },
@@ -167,8 +190,8 @@ export default function NotificationsPage() {
         ) : notifications.length === 0 ? (
           <div className="p-6">
             <EmptyState
-              title="No notifications"
-              description="You have no notifications matching the selected filter criteria."
+              title={isEmployee && filterRead === 'false' ? 'No unread notifications' : 'No notifications'}
+              description={isEmployee ? filterRead === 'false' ? 'You are caught up. Switch to All to revisit previous updates.' : filterRead === 'true' ? 'Notifications you mark as read will appear here.' : 'New policy reminders, training updates, and support replies will appear here.' : 'You have no notifications matching the selected filter criteria.'}
               icon="bell"
             />
           </div>
@@ -205,9 +228,9 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       <p className="text-xs text-slate-400 leading-relaxed">{n.message}</p>
-                      <span className="text-[11px] text-slate-500 font-medium mt-1.5 block">
+                      <time dateTime={n.createdAt} className="notification-date text-[11px] text-slate-500 font-medium mt-1.5 block">
                         {new Date(n.createdAt).toLocaleString()}
-                      </span>
+                      </time>
                     </div>
                   </div>
 
@@ -218,9 +241,10 @@ export default function NotificationsPage() {
                         handleMarkOneRead(n.id);
                       }}
                       aria-label={`Mark ${n.title} as read`}
+                      disabled={markingAll || Boolean(markingId)}
                       className="notification-mark-read px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-blue-600 hover:border-blue-500 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition-all shrink-0 cursor-pointer"
                     >
-                      Mark Read
+                      {markingId === n.id ? 'Updating...' : 'Mark read'}
                     </button>
                   )}
                 </div>
@@ -228,7 +252,7 @@ export default function NotificationsPage() {
             })}
           </div>
         )}
-        {isAdmin && !loading && !error && <div className="activity-footer">Showing {notifications.length} notification{notifications.length === 1 ? '' : 's'} in this view</div>}
+        {(isAdmin || isTrainingAdmin || isEmployee) && !loading && !error && <div className="activity-footer" role="status">Showing {notifications.length} notification{notifications.length === 1 ? '' : 's'} in this view</div>}
       </div>
     </div>
   );

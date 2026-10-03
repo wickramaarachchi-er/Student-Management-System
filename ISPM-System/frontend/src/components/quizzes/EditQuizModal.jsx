@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { updateQuizRequest } from '../../services/quiz.service.js';
 import Icon from '../common/Icon.jsx';
+import './QuizAdminDialogs.css';
 
 export default function EditQuizModal({ isOpen, onClose, quiz, onUpdated }) {
   const [formData, setFormData] = useState({
@@ -91,17 +92,17 @@ export default function EditQuizModal({ isOpen, onClose, quiz, onUpdated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="quiz-admin-overlay fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="quiz-admin-dialog quiz-admin-settings bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-quiz-title"
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+        <div className="quiz-admin-header px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div className="quiz-admin-heading flex items-center space-x-3">
+            <div className="quiz-admin-emblem w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
               <Icon name="pencil" className="w-5 h-5" />
             </div>
             <div>
@@ -115,7 +116,7 @@ export default function EditQuizModal({ isOpen, onClose, quiz, onUpdated }) {
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="quiz-admin-close text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Close"
           >
             <Icon name="close" className="w-5 h-5" />
@@ -123,7 +124,7 @@ export default function EditQuizModal({ isOpen, onClose, quiz, onUpdated }) {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="quiz-admin-form p-6 space-y-4">
           {apiError && (
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
               {apiError}
@@ -182,6 +183,7 @@ export default function EditQuizModal({ isOpen, onClose, quiz, onUpdated }) {
                 onChange={handleChange}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800 transition-all"
               />
+              {fieldErrors.passingScore && <p className="text-xs text-rose-600">{fieldErrors.passingScore}</p>}
             </div>
 
             <div>
@@ -198,6 +200,7 @@ export default function EditQuizModal({ isOpen, onClose, quiz, onUpdated }) {
                 onChange={handleChange}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800 transition-all"
               />
+              {fieldErrors.maxAttempts && <p className="text-xs text-rose-600">{fieldErrors.maxAttempts}</p>}
             </div>
 
             <div>
@@ -218,7 +221,7 @@ export default function EditQuizModal({ isOpen, onClose, quiz, onUpdated }) {
           </div>
 
           {/* Footer Controls */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+          <div className="quiz-admin-form-actions pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}

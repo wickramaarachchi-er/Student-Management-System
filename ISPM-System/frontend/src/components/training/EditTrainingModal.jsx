@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { updateTrainingRequest } from '../../services/training.service.js';
 import Icon from '../common/Icon.jsx';
+import './TrainingDialogs.css';
 
 export default function EditTrainingModal({ isOpen, onClose, trainingModule, onUpdated }) {
   const [formData, setFormData] = useState({
@@ -82,17 +83,17 @@ export default function EditTrainingModal({ isOpen, onClose, trainingModule, onU
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="training-dialog-overlay fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="training-dialog training-edit-dialog bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-training-title"
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+        <div className="training-dialog-header px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div className="training-dialog-heading flex items-center space-x-3">
+            <div className="training-dialog-emblem w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
               <Icon name="pencil" className="w-5 h-5" />
             </div>
             <div>
@@ -106,7 +107,7 @@ export default function EditTrainingModal({ isOpen, onClose, trainingModule, onU
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="training-dialog-close text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Close"
           >
             <Icon name="close" className="w-5 h-5" />
@@ -114,14 +115,15 @@ export default function EditTrainingModal({ isOpen, onClose, trainingModule, onU
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="training-dialog-form p-6 space-y-4">
+          <div className="training-form-intro"><span>MODULE DETAILS</span><p>Refine the learning objective, curriculum, and supporting resources.</p></div>
           {apiError && (
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
               {apiError}
             </div>
           )}
 
-          <div>
+          <div className="training-form-field">
             <label htmlFor="edit-title" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
               Module Title <span className="text-rose-500">*</span>
             </label>
@@ -163,6 +165,7 @@ export default function EditTrainingModal({ isOpen, onClose, trainingModule, onU
             </label>
             <textarea
               id="edit-content"
+              aria-describedby="training-content-hint"
               name="content"
               rows={6}
               required
@@ -174,6 +177,7 @@ export default function EditTrainingModal({ isOpen, onClose, trainingModule, onU
                   : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800'
               }`}
             />
+            <p id="training-content-hint" className="training-field-hint">Use clear steps and practical examples to guide your learners.</p>
             {fieldErrors.content && (
               <p className="mt-1 text-xs text-rose-600 font-medium">{fieldErrors.content}</p>
             )}
@@ -195,18 +199,18 @@ export default function EditTrainingModal({ isOpen, onClose, trainingModule, onU
           </div>
 
           {/* Footer Controls */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+          <div className="training-dialog-footer pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+              className="training-dialog-secondary px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-indigo-600/20 disabled:opacity-60 transition-all flex items-center space-x-2"
+              className="training-dialog-primary px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-indigo-600/20 disabled:opacity-60 transition-all flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <>
