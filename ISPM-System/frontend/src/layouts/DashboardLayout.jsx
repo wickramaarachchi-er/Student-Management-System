@@ -22,7 +22,7 @@ export default function DashboardLayout() {
   return (
     <div className={`h-screen w-screen bg-[#030712] text-slate-100 flex overflow-hidden font-sans${isComplianceWorkspace ? ' compliance-workspace-shell' : ''}`}>
       {/* Desktop Sidebar (Fixed & Stable, 100% viewport height, never scrolls away) */}
-      <div className={`hidden lg:flex lg:flex-shrink-0 h-screen sticky top-0 z-30${user?.role === 'COMPLIANCE_OFFICER' ? ' compliance-sidebar-shell' : ''}`}>
+      <div className="hidden lg:flex lg:flex-shrink-0 h-screen sticky top-0 z-30">
         <Sidebar />
       </div>
 
@@ -67,5 +67,3 @@ export default function DashboardLayout() {
     </div>
   );
 }
-
-
