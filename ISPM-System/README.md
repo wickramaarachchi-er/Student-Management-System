@@ -215,6 +215,9 @@ The schema covers 8 system areas:
 
 ### 5. Start the development servers
 
+Keep both servers running in separate terminals. Starting Vite alone does not
+start the backend API.
+
 **Backend** (runs on port 5001):
 
 ```bash
@@ -232,6 +235,14 @@ npm run dev
 ---
 
 ## API Endpoints
+
+### Troubleshooting: Vite proxy `ECONNREFUSED`
+
+If `/api/auth/login` reports `ECONNREFUSED`, start the backend with
+`npm run dev` from `backend/` and keep that terminal open. Check
+`http://localhost:5001/api/health` to confirm the API is reachable.
+The backend `PORT` and the port in frontend `VITE_API_BASE_URL` must match
+(both default to `5001`). Restart Vite after changing the frontend `.env`.
 
 | Method | Endpoint     | Description             |
 | ------ | ------------ | ----------------------- |

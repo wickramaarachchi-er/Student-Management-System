@@ -19,7 +19,7 @@ function optionalEnv(key, defaultValue) {
 
 export const env = {
   NODE_ENV: optionalEnv('NODE_ENV', 'development'),
-  PORT: parseInt(optionalEnv('PORT', '5000'), 10),
+  PORT: parseInt(optionalEnv('PORT', '5001'), 10),
 
   // Database
   DATABASE_URL: optionalEnv('DATABASE_URL', ''),
