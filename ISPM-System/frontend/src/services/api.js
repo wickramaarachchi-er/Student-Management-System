@@ -5,7 +5,11 @@
  * once from the Vite env variable so it is never hardcoded in components.
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Vite proxies development requests to the API, regardless of the browser's
+// hostname or frontend port. Production uses its configured API address.
+const BASE_URL = import.meta.env.DEV
+  ? '/api'
+  : import.meta.env.VITE_API_BASE_URL;
 
 if (!BASE_URL) {
   console.error('[api] VITE_API_BASE_URL is not set. Check your .env file.');

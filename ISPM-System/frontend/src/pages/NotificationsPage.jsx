@@ -34,6 +34,8 @@ export default function NotificationsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'SYSTEM_ADMIN';
   const isComplianceOfficer = user?.role === 'COMPLIANCE_OFFICER';
+  const isTrainingAdmin = user?.role === 'TRAINING_ADMIN';
+  const isEmployee = user?.role === 'EMPLOYEE';
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,7 @@ export default function NotificationsPage() {
             </button>
           ) : null
         }
-      />}
+      />
 
       {actionError && <div className="notification-action-error" role="alert">{actionError}</div>}
 

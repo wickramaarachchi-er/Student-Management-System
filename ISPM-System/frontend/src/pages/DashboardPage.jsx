@@ -64,9 +64,7 @@ export default function DashboardPage() {
 
   return (
     <div className={role === 'EMPLOYEE' ? 'employee-dashboard-page' : role === 'SYSTEM_ADMIN' ? 'admin-dashboard-page' : 'space-y-7 sm:space-y-8'}>
-      {role === 'SYSTEM_ADMIN' ? (
-    <div className="admin-dashboard-page">
-      {role ? (
+      {role === 'SYSTEM_ADMIN' || role === 'COMPLIANCE_OFFICER' ? (
         <div className="admin-page-header">
           <div><span className="admin-eyebrow">{role === 'SYSTEM_ADMIN' ? 'ADMINISTRATION / OVERVIEW' : role === 'COMPLIANCE_OFFICER' ? 'COMPLIANCE / OVERVIEW' : role === 'TRAINING_ADMIN' ? 'LEARNING / OVERVIEW' : 'MY SECURITY / OVERVIEW'}</span>
             <h1>Welcome back, {user?.firstName || roleLabel}.</h1>
