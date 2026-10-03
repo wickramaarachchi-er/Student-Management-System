@@ -31,6 +31,7 @@ const TYPE_META = {
 export default function NotificationsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'SYSTEM_ADMIN';
+  const isComplianceOfficer = user?.role === 'COMPLIANCE_OFFICER';
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -97,7 +98,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className={isAdmin ? "admin-activity notifications-centre" : "space-y-6"}>
+    <div className={isAdmin || isComplianceOfficer ? "admin-activity notifications-centre" : "space-y-6"}>
       <PageHeader
         title="Notifications"
         description="System alerts, policy update notices, training assignments, and helpdesk status updates."

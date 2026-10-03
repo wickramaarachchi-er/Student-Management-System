@@ -91,7 +91,7 @@ export default function UsersPage() {
   }, [users]);
 
   return (
-    <div className="user-management space-y-8">
+    <div className="user-management">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800/60">
         <div>

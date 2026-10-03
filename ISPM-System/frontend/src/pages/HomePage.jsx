@@ -55,7 +55,7 @@ function HomePage() {
           letterSpacing: '-0.02em',
         }}
       >
-        ISPM System
+        CyberShield
       </h1>
 
       <p
@@ -68,7 +68,7 @@ function HomePage() {
           lineHeight: 1.6,
         }}
       >
-        Information Security Policy Awareness and Management System
+        Security and compliance workspace
       </p>
 
       {/* Status badge */}

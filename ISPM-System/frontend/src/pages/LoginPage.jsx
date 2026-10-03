@@ -1,6 +1,6 @@
 /**
  * pages/LoginPage.jsx
- * Enterprise authentication layout for the Information Security Policy & Management System (ISPM).
+ * Sign in to the CyberShield security and compliance workspace.
  */
 import { useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -69,37 +69,18 @@ export default function LoginPage() {
         <section aria-label="Product information" className="login-story">
           <div className="login-brand">
             <span className="login-brand-mark"><Icon name="shield" aria-hidden="true" /></span>
-            <div><strong>ISPM<span className="login-brand-dot">.</span></strong><span>Information Security Management</span></div>
+            <div><strong>CyberShield</strong><span>Security &amp; compliance</span></div>
           </div>
           <div className="login-story-content">
-            <p className="login-eyebrow"><span /> YOUR SECURITY WORKSPACE</p>
-            <h1>A stronger security<br />culture starts <em>here.</em></h1>
-            <p className="login-story-description">Bring your policies, people and compliance together. One workspace for a more security-aware organization.</p>
-            <div className="login-capabilities">
-              {[
-                ['book', 'Policies, made clear', 'Publish, manage and acknowledge security policies.'],
-                ['academic-cap', 'Awareness that matters', 'Build knowledge through training and assessments.'],
-                ['chart', 'Compliance in focus', 'Keep track of progress and security activity.'],
-              ].map(([icon, title, description]) => (
-                <div className="login-capability" key={title}>
-                  <span className="login-capability-icon"><Icon name={icon} /></span>
-                  <div><h2>{title}</h2><p>{description}</p></div>
-                </div>
-              ))}
-            </div>
+            <h1>Security &amp; compliance</h1>
+            <p className="login-story-description">Sign in to access your organization’s policies, training, and compliance records.</p>
           </div>
-          <div className="login-story-footer"><Icon name="shield-check" /><span>Better awareness. Stronger protection.</span></div>
-          <div className="login-orbit login-orbit-one" aria-hidden="true" />
-          <div className="login-orbit login-orbit-two" aria-hidden="true" />
         </section>
 
         <section aria-labelledby="login-title" className="login-form-panel">
-          <p className="login-access-label"><Icon name="lock" aria-hidden="true" /> SECURE ACCESS</p>
           <div className="login-form-content">
-            <div className="login-form-mark"><Icon name="lock" aria-hidden="true" /></div>
-            <p className="login-form-eyebrow">WELCOME TO ISPM</p>
-            <h2 id="login-title">Welcome back</h2>
-            <p className="login-form-description">Sign in to access your ISPM account.</p>
+            <h2 id="login-title">Sign in</h2>
+            <p className="login-form-description">Use your organization account to continue.</p>
 
             {/* Error Message Alert */}
             {errorMessage && (
@@ -194,10 +175,8 @@ export default function LoginPage() {
                 {isSubmitting ? <><span className="login-spinner" aria-hidden="true" /> Signing in...</> : <>Sign in to workspace <span aria-hidden="true">&rarr;</span></>}
               </button>
             </form>
-            <p className="login-account-help">Need access? Contact your system administrator.</p>
-            <div className="login-form-footer"><Icon name="shield-check" /><span>For authorized users only</span></div>
+            <p className="login-account-help">Need an account? Contact your system administrator.</p>
           </div>
-          <p className="login-panel-footer">Information Security Policy &amp; Management System</p>
         </section>
       </div>
     </main>

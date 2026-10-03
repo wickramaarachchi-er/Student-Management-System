@@ -1,162 +1,44 @@
-/**
- * components/dashboard/EmployeeDashboard.jsx
- * Dashboard view for EMPLOYEE role displaying personal progress, compliance, and real attention items.
- */
 import { Link } from 'react-router-dom';
 import Icon from '../common/Icon.jsx';
-import StatCard from '../common/StatCard.jsx';
-import StatusBadge from '../common/StatusBadge.jsx';
+import './ComplianceOfficerDashboard.css';
 
 export default function EmployeeDashboard({ data }) {
-  const { metrics, attentionItems = [] } = data || {};
-  const {
-    policiesRequiringAcknowledgement = 0,
-    acknowledgedPolicyCount = 0,
-    trainingCompletedCount = 0,
-    trainingInProgressCount = 0,
-    trainingNotStartedCount = 0,
-    quizzesPassed = 0,
-    quizzesOutstanding = 0,
-    ownCompliancePercentage = 0,
-    complianceStatus = 'PARTIALLY_COMPLIANT',
-  } = metrics || {};
-
-  const quickActions = [
-    { label: 'Security Policies', path: '/policies', icon: 'book', desc: 'Review and acknowledge mandatory security policies' },
-    { label: 'Awareness Training', path: '/training', icon: 'academic-cap', desc: 'Complete interactive cyber hygiene modules' },
-    { label: 'Knowledge Quizzes', path: '/quizzes', icon: 'clipboard-list', desc: 'Test your understanding of passwords and security' },
-    { label: 'My Progress Portal', path: '/my-progress', icon: 'award', desc: 'View your completed certifications and detailed status' },
-    { label: 'Security Helpdesk', path: '/helpdesk', icon: 'helpdesk', desc: 'Ask security questions or report suspicious emails' },
-    { label: 'Notifications', path: '/notifications', icon: 'bell', desc: 'Check personal reminders and security alerts' },
+  const { metrics = {}, attentionItems = [] } = data || {};
+  const { policiesRequiringAcknowledgement = 0, acknowledgedPolicyCount = 0,
+    trainingCompletedCount = 0, trainingInProgressCount = 0, trainingNotStartedCount = 0,
+    quizzesPassed = 0, quizzesOutstanding = 0, ownCompliancePercentage = 0,
+    complianceStatus = 'PARTIALLY_COMPLIANT' } = metrics;
+  const cards = [
+    { title: 'My compliance score', value: `${ownCompliancePercentage}%`, detail: `Status: ${complianceStatus.replaceAll('_', ' ').toLowerCase()}`, icon: 'shield-check', tone: ownCompliancePercentage === 100 ? 'teal' : 'amber', path: '/my-progress' },
+    { title: 'Policies pending', value: policiesRequiringAcknowledgement, detail: `${acknowledgedPolicyCount} acknowledged`, icon: 'book', tone: 'violet', path: '/policies' },
+    { title: 'Training completed', value: trainingCompletedCount, detail: `${trainingInProgressCount} in progress · ${trainingNotStartedCount} not started`, icon: 'academic-cap', tone: 'indigo', path: '/training' },
+    { title: 'Quizzes passed', value: quizzesPassed, detail: `${quizzesOutstanding} outstanding`, icon: 'award', tone: 'teal', path: '/quizzes' },
   ];
-
-  return (
-    <div className="space-y-10 sm:space-y-12">
-      {/* Primary Personal Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-        <StatCard
-          title="My Compliance Score"
-          value={`${ownCompliancePercentage}%`}
-          subtitle={`Status: ${complianceStatus.replace('_', ' ')}`}
-          icon="shield-check"
-          iconBg={
-            ownCompliancePercentage === 100
-              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-              : 'bg-[#392408] text-[#fbbf24] border-[#784d12]'
-          }
-          trend={ownCompliancePercentage === 100 ? 'Fully Compliant' : 'Outstanding Action'}
-          trendType={ownCompliancePercentage === 100 ? 'positive' : 'warning'}
-        />
-        <StatCard
-          title="Policies Pending"
-          value={policiesRequiringAcknowledgement}
-          subtitle={`${acknowledgedPolicyCount} policies acknowledged`}
-          icon="book"
-          iconBg="bg-[#392408] text-[#fbbf24] border-[#784d12]"
-          trend={policiesRequiringAcknowledgement === 0 ? 'Up to Date' : 'Signature Due'}
-          trendType={policiesRequiringAcknowledgement === 0 ? 'positive' : 'warning'}
-        />
-        <StatCard
-          title="Training Completed"
-          value={trainingCompletedCount}
-          subtitle={`${trainingInProgressCount} in progress, ${trainingNotStartedCount} unstarted`}
-          icon="academic-cap"
-          iconBg="bg-[#0b2447] text-[#60a5fa] border-[#1d4ed8]/40"
-        />
-        <StatCard
-          title="Quizzes Passed"
-          value={quizzesPassed}
-          subtitle={`${quizzesOutstanding} outstanding assessments`}
-          icon="clipboard-list"
-          iconBg="bg-[#28114b] text-[#c084fc] border-[#7e22ce]/40"
-        />
-      </div>
-
-      {/* Dynamic "What Needs Your Attention" Section */}
-      <div className="space-y-5">
-        <div className="flex items-center justify-between pb-2 border-b border-[#142347]/60">
-          <div>
-            <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider">
-              WHAT NEEDS YOUR ATTENTION
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Action items derived live from your current compliance requirements
-            </p>
-          </div>
-          <span className="text-xs sm:text-sm text-slate-300 font-semibold tracking-wide bg-[#060e22] px-3.5 py-1.5 rounded-full border border-[#142347]">
-            {attentionItems.length} {attentionItems.length === 1 ? 'Requirement' : 'Requirements'} Due
-          </span>
-        </div>
-
-        {attentionItems.length === 0 ? (
-          <div className="p-10 text-center bg-[#060e22] rounded-2xl border border-[#142347] my-3">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-              <Icon name="check" className="w-7 h-7" />
-            </div>
-            <h3 className="text-lg font-bold text-white">You are 100% Compliant!</h3>
-            <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-              All required security policies have been acknowledged, awareness modules completed, and assessments passed.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3.5">
-            {attentionItems.map((item) => (
-              <div
-                key={item.id}
-                className="px-6 py-5 rounded-2xl bg-[#060e22] hover:bg-[#091533] border border-[#142347] flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all shadow-sm"
-              >
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-950/80 border border-sky-500/40 text-sky-400 text-xs font-extrabold uppercase tracking-wide shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_6px_rgba(56,189,248,0.8)]" />
-                      {item.type}
-                    </span>
-                    <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">{item.title}</h3>
-                  </div>
-                  <p className="text-xs sm:text-sm text-slate-400 pl-0.5">{item.detail}</p>
-                </div>
-                <Link
-                  to={item.link}
-                  className="inline-flex items-center justify-center text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white shadow-lg shadow-blue-950/60 transition-all shrink-0 whitespace-nowrap"
-                >
-                  Take Action →
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Security Portal Navigation Section */}
-      <div className="space-y-5 pt-2">
-        <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider pb-2 border-b border-[#142347]/60">
-          SECURITY PORTAL NAVIGATION
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {quickActions.map((action, idx) => (
-            <Link
-              key={idx}
-              to={action.path}
-              className="p-6 rounded-2xl bg-[#060e22] hover:bg-[#091533] border border-[#142347] hover:border-blue-500/50 transition-all flex flex-col justify-between group shadow-sm min-h-[150px]"
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-2.5">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                    <Icon name={action.icon} className="w-5 h-5" />
-                  </div>
-                  <span className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">
-                    {action.label}
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mt-2">{action.desc}</p>
-              </div>
-              <span className="text-xs sm:text-sm text-blue-400 font-semibold mt-5 inline-flex items-center gap-1 group-hover:translate-x-1.5 transition-transform">
-                Launch →
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
+  const actions = [
+    { title: 'Security policies', detail: 'Review and acknowledge required policies', icon: 'book', path: '/policies' },
+    { title: 'Awareness training', detail: 'Complete your assigned learning modules', icon: 'academic-cap', path: '/training' },
+    { title: 'Knowledge quizzes', detail: 'Check your understanding of security topics', icon: 'clipboard-list', path: '/quizzes' },
+    { title: 'My progress', detail: 'Review your completion and compliance status', icon: 'award', path: '/my-progress' },
+    { title: 'Security helpdesk', detail: 'Ask a question or report a concern', icon: 'helpdesk', path: '/helpdesk' },
+    { title: 'Notifications', detail: 'Read reminders and security alerts', icon: 'bell', path: '/notifications' },
+  ];
+  return <div className="compliance-overview">
+    <section className="compliance-stats" aria-label="My security progress">{cards.map((card) => <Link className={`compliance-stat ${card.tone}`} to={card.path} key={card.title}>
+      <div className="compliance-stat-top"><span>{card.title}</span><span className="compliance-icon"><Icon name={card.icon} className="w-5 h-5" /></span></div><strong>{card.value}</strong><div className="compliance-stat-bottom"><span>{card.detail}</span><span aria-hidden="true">↗</span></div>
+    </Link>)}</section>
+    <div className="compliance-middle">
+      <section className="compliance-panel"><div className="compliance-panel-heading"><div><h2>{attentionItems.length ? 'Recent items needing attention' : 'You are up to date'}</h2><p>{attentionItems.length ? 'Your current outstanding security requirements' : 'Your required policies, training, and assessments are complete'}</p></div><span className={`employee-attention-count ${attentionItems.length ? 'has-items' : ''}`}>{attentionItems.length} due</span></div>
+        {attentionItems.length ? <ol className="employee-activity">{attentionItems.slice(0, 6).map((item) => <li key={item.id}><span className="employee-event-dot" /><div className="employee-event-copy"><div className="employee-event-title"><span>{item.type}</span><Link to={item.link}>Take action ↗</Link></div><h3>{item.title}</h3><p>{item.detail}</p></div></li>)}</ol> : <div className="compliance-empty employee-empty"><span className="employee-done-icon"><Icon name="check" className="w-6 h-6" /></span><h3>All requirements complete</h3><p>New tasks will appear here when action is needed.</p></div>}
+      </section>
+      <section className="compliance-workspace"><span className="compliance-eyebrow">MY SECURITY WORKSPACE</span><h2>Stay ready. Stay secure.</h2><p>Continue your learning and keep your security requirements current.</p>
+        <Link className="compliance-primary" to="/my-progress"><Icon name="award" className="w-4 h-4" />View my progress<span aria-hidden="true">↗</span></Link>
+        <Link className="compliance-workspace-link" to="/policies"><Icon name="book" className="w-4 h-4" /><span>Review pending policies</span><b>{policiesRequiringAcknowledgement}</b></Link>
+        <Link className="compliance-workspace-link" to="/training"><Icon name="academic-cap" className="w-4 h-4" /><span>Continue training</span><b>{trainingInProgressCount}</b></Link>
+      </section>
     </div>
-  );
+    <section className="compliance-panel"><div className="compliance-panel-heading"><div><h2>Security portal</h2><p>Quick access to your learning and support tools</p></div></div>
+      <div className="employee-action-grid">{actions.map((action) => <Link to={action.path} className="employee-action" key={action.path}><span><Icon name={action.icon} className="w-4 h-4" /></span><div><h3>{action.title}</h3><p>{action.detail}</p></div><b aria-hidden="true">↗</b></Link>)}</div>
+    </section>
+    <div className="compliance-footer"><span>CyberShield / My security overview</span><span>Policies · Training · Assessments</span></div>
+  </div>;
 }

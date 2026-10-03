@@ -63,15 +63,15 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={role === 'SYSTEM_ADMIN' ? 'admin-dashboard-page' : 'space-y-7 sm:space-y-8'}>
-      {role === 'SYSTEM_ADMIN' ? (
+    <div className="admin-dashboard-page">
+      {role ? (
         <div className="admin-page-header">
-          <div><span className="admin-eyebrow">ADMINISTRATION / OVERVIEW</span>
-            <h1>Welcome back, {user?.firstName || 'Administrator'}.</h1>
-            <p>Here?s what?s happening across your platform.</p>
+          <div><span className="admin-eyebrow">{role === 'SYSTEM_ADMIN' ? 'ADMINISTRATION / OVERVIEW' : role === 'COMPLIANCE_OFFICER' ? 'COMPLIANCE / OVERVIEW' : role === 'TRAINING_ADMIN' ? 'LEARNING / OVERVIEW' : 'MY SECURITY / OVERVIEW'}</span>
+            <h1>Welcome back, {user?.firstName || roleLabel}.</h1>
+            <p>{role === 'SYSTEM_ADMIN' ? 'Review platform administration and system activity.' : role === 'COMPLIANCE_OFFICER' ? 'Track organization compliance, policy acknowledgements, and audit readiness.' : role === 'TRAINING_ADMIN' ? 'Manage learning content and follow training outcomes across your organization.' : 'Keep up with your security requirements, learning, and progress.'}</p>
           </div>
           <div className="admin-header-actions"><span className="admin-header-date">{currentDateFormatted}</span>
-            <button type="button" onClick={loadMetrics} disabled={loading} className="admin-refresh"><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing?' : 'Refresh'}</button>
+            <button type="button" onClick={loadMetrics} disabled={loading} className="admin-refresh"><Icon name="refresh" className="w-4 h-4" />{loading ? 'Refreshing…' : 'Refresh'}</button>
           </div>
         </div>
       ) : (<>

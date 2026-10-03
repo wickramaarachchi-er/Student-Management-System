@@ -14,6 +14,7 @@ import PublishVersionModal from '../components/policies/PublishVersionModal.jsx'
 import AcknowledgementsModal from '../components/policies/AcknowledgementsModal.jsx';
 import ArchivePolicyModal from '../components/policies/ArchivePolicyModal.jsx';
 import PolicyDetailModal from '../components/policies/PolicyDetailModal.jsx';
+import './PoliciesPage.css';
 
 const POLICY_CATEGORIES = [
   'GENERAL',
@@ -120,7 +121,7 @@ export default function PoliciesPage() {
   }, [policies]);
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${isComplianceOfficer ? 'policies-management' : ''}`}>
       {/* Toast Notification */}
       {toast && (
         <div
@@ -143,7 +144,7 @@ export default function PoliciesPage() {
       {isComplianceOfficer && (
         <>
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="policies-page-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
@@ -170,7 +171,7 @@ export default function PoliciesPage() {
           </div>
 
           {/* KPI Summary Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="policies-summary grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-sm">
               <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Policies</div>
               <div className="text-2xl font-bold text-white mt-1">{complianceStats.total}</div>
@@ -197,7 +198,7 @@ export default function PoliciesPage() {
           </div>
 
           {/* Filter Bar */}
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div className="policies-filter p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
             <div className="relative w-full md:w-80">
               <input
                 type="text"
@@ -247,7 +248,7 @@ export default function PoliciesPage() {
           )}
 
           {/* Policies Table */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-xl">
+          <div className="policies-directory rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-300">
                 <thead className="bg-slate-800/80 text-xs uppercase text-slate-400 font-medium tracking-wider">

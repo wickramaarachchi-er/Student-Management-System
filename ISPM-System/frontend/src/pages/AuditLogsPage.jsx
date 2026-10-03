@@ -39,6 +39,7 @@ const INPUT_CLASS = 'w-full px-3 py-2 text-xs bg-slate-950 border border-slate-8
 export default function AuditLogsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'SYSTEM_ADMIN';
+  const isComplianceOfficer = user?.role === 'COMPLIANCE_OFFICER';
   const [logs, setLogs]               = useState([]);
   const [pagination, setPagination]   = useState({ page: 1, limit: 20, totalRecords: 0, totalPages: 0 });
   const [metaActions, setMetaActions] = useState([]);
@@ -105,7 +106,7 @@ export default function AuditLogsPage() {
   const hasFilters = search || action || entityType || dateFrom || dateTo;
 
   return (
-    <div className={isAdmin ? "admin-activity audit-log-view" : "space-y-6"}>
+    <div className={isAdmin || isComplianceOfficer ? "admin-activity audit-log-view" : "space-y-6"}>
       <PageHeader
         title="Audit logs"
         description="Tamper-evident chronological record of authentication, policy, training, quiz, and administrative events."

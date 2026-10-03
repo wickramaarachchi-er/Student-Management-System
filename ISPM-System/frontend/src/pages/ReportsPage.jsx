@@ -16,6 +16,7 @@ import LoadingState from '../components/common/LoadingState.jsx';
 import ErrorState from '../components/common/ErrorState.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import EmployeeEvidenceModal from '../components/compliance/EmployeeEvidenceModal.jsx';
+import './ReportsPage.css';
 
 const INPUT_CLASS = 'px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-blue-500';
 
@@ -68,7 +69,7 @@ export default function ReportsPage() {
   const categories = summaryData?.categories || {};
 
   return (
-    <div className="space-y-6">
+    <div className="exec-report space-y-6">
       <PageHeader
         title="InfoSec Compliance Executive Report"
         description="Comprehensive organization compliance audit summary, adherence metrics, and complete employee roster."
@@ -76,7 +77,7 @@ export default function ReportsPage() {
         action={
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors border border-slate-700 cursor-pointer print:hidden"
+            className="exec-print inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors border border-slate-700 cursor-pointer print:hidden"
           >
             <Icon name="eye" className="w-4 h-4" />
             <span>Print Report</span>
@@ -91,7 +92,7 @@ export default function ReportsPage() {
       ) : (
         <>
           {/* Executive Summary KPIs */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="exec-kpis grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="Overall Compliance Rate"
               value={`${overview.averageCompliancePercentage || 0}%`}
@@ -126,7 +127,7 @@ export default function ReportsPage() {
           </div>
 
           {/* Category Progress Breakdown */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+          <div className="exec-categories bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
             <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider mb-4 pb-2 border-b border-slate-800">
               Compliance Adherence by Requirement Category
             </h2>
@@ -156,8 +157,8 @@ export default function ReportsPage() {
           </div>
 
           {/* Roster Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="exec-roster bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="exec-roster-heading px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
               <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Detailed Employee Compliance Roster</h2>
               <div className="flex flex-wrap items-center gap-3">
                 <input
@@ -185,7 +186,7 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="exec-table-scroll overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">

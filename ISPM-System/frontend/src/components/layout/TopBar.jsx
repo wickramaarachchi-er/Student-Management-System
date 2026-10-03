@@ -4,10 +4,13 @@
  */
 import { Link } from 'react-router-dom';
 import Icon from '../common/Icon.jsx';
+import { useAuth } from '../../hooks/useAuth.js';
 
 export default function TopBar({ onToggleMobileMenu }) {
+  const { user } = useAuth();
+  const isComplianceOfficer = user?.role === 'COMPLIANCE_OFFICER';
   return (
-    <header className="h-16 bg-[#040817]/95 backdrop-blur-md border-b border-[#122043] px-4 sm:px-8 flex items-center justify-between z-20 sticky top-0">
+    <header className={`portal-topbar ${isComplianceOfficer ? 'compliance-topbar' : ''} h-16 bg-[#040817]/95 backdrop-blur-md border-b border-[#122043] px-4 sm:px-8 flex items-center justify-between z-20 sticky top-0`}>
       {/* Left: Mobile Menu Toggle & Brand Context */}
       <div className="flex items-center gap-3.5">
         <button
@@ -21,14 +24,14 @@ export default function TopBar({ onToggleMobileMenu }) {
 
         <div className="hidden sm:flex flex-col">
           <span className="text-[15px] font-bold text-white tracking-tight leading-none">
-            Information Security Policy & Awareness Platform
+            CyberShield
           </span>
           <span className="text-xs text-slate-400 font-medium mt-1">
-            Enterprise Compliance Portal
+            Security &amp; Compliance Portal
           </span>
         </div>
         <div className="sm:hidden">
-          <span className="text-sm font-bold text-white">ISPM Platform</span>
+          <span className="text-sm font-bold text-white">CyberShield</span>
         </div>
       </div>
 
