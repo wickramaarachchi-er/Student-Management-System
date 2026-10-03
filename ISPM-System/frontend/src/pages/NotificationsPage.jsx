@@ -41,6 +41,8 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filterRead, setFilterRead] = useState('');
+  const [inboxSearch, setInboxSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All categories');
   const [markingAll, setMarkingAll] = useState(false);
   const [markingId, setMarkingId] = useState(null);
   const [actionError, setActionError] = useState('');
@@ -114,9 +116,26 @@ export default function NotificationsPage() {
     }
   };
 
+  const visibleNotifications = isEmployee ? notifications.filter(notification => {
+    const category = (TYPE_META[notification.type] || TYPE_META.SYSTEM).label;
+    const query = inboxSearch.trim().toLowerCase();
+    return (categoryFilter === 'All categories' || category === categoryFilter)
+      && (!query || `${notification.title || ''} ${notification.message || ''}`.toLowerCase().includes(query));
+  }) : notifications;
+
   return (
-    <div className={isAdmin || isComplianceOfficer ? "admin-activity notifications-centre" : "space-y-6"}>
-      <PageHeader
+    <div className={isEmployee ? 'training-notifications employee-notifications' : isAdmin || isComplianceOfficer ? "admin-activity notifications-centre" : "space-y-6"}>
+      {isEmployee ? <header className="training-notifications-header">
+        <div>
+          <span className="training-notifications-eyebrow">MY WORKSPACE / NOTIFICATIONS</span>
+          <h1>My notifications</h1>
+          <p>Keep track of your policy reminders, learning updates, and support replies.</p>
+        </div>
+        <div className="training-notifications-actions">
+          <button type="button" className="training-notifications-refresh" onClick={fetchNotificationsData} disabled={loading || markingAll || Boolean(markingId)}><Icon name="bell" className="w-4 h-4" />Refresh inbox</button>
+          {unreadCount > 0 && <button type="button" className="training-notifications-primary" onClick={handleMarkAllRead} disabled={loading || markingAll || Boolean(markingId)}><Icon name="check" className="w-4 h-4" />{markingAll ? 'Updating...' : 'Mark all as read'}</button>}
+        </div>
+      </header> : <PageHeader
         title="Notifications"
         description="System alerts, policy update notices, training assignments, and helpdesk status updates."
         icon="bell"
@@ -132,7 +151,7 @@ export default function NotificationsPage() {
             </button>
           ) : null
         }
-      />
+      />}
 
       {actionError && <div className="notification-action-error" role="alert">{actionError}</div>}
 
@@ -174,6 +193,12 @@ export default function NotificationsPage() {
           </div>
         </div>
 
+        {isEmployee && <div className="employee-inbox-toolbar">
+          <div className="employee-inbox-search"><Icon name="search" className="w-4 h-4" /><input type="search" aria-label="Search notifications" placeholder="Search your notifications..." value={inboxSearch} onChange={event => setInboxSearch(event.target.value)} /></div>
+          <select aria-label="Filter notification category" value={categoryFilter} onChange={event => setCategoryFilter(event.target.value)}>{['All categories', 'Policy', 'Training', 'Quiz', 'Helpdesk', 'System'].map(category => <option key={category} value={category}>{category}</option>)}</select>
+          {(inboxSearch || categoryFilter !== 'All categories') && <button type="button" className="employee-inbox-clear" onClick={() => { setInboxSearch(''); setCategoryFilter('All categories'); }}>Clear filters</button>}
+        </div>}
+
         {loading ? (
           <div className="p-6">
             <LoadingState message="Loading notification history..." />
@@ -182,21 +207,22 @@ export default function NotificationsPage() {
           <div className="p-6">
             <ErrorState message={error} onRetry={fetchNotificationsData} />
           </div>
-        ) : notifications.length === 0 ? (
+        ) : visibleNotifications.length === 0 ? (
           <div className="p-6">
             <EmptyState
-              title={isEmployee && filterRead === 'false' ? 'No unread notifications' : 'No notifications'}
-              description={isEmployee ? filterRead === 'false' ? 'You are caught up. Switch to All to revisit previous updates.' : filterRead === 'true' ? 'Notifications you mark as read will appear here.' : 'New policy reminders, training updates, and support replies will appear here.' : 'You have no notifications matching the selected filter criteria.'}
+              title={isEmployee && (inboxSearch || categoryFilter !== 'All categories') ? 'No matching notifications' : isEmployee && filterRead === 'false' ? 'No unread notifications' : 'No notifications'}
+              description={isEmployee ? inboxSearch || categoryFilter !== 'All categories' ? 'Try another keyword or clear your inbox filters.' : filterRead === 'false' ? 'You are caught up. Switch to All to revisit previous updates.' : filterRead === 'true' ? 'Notifications you mark as read will appear here.' : 'New policy reminders, training updates, and support replies will appear here.' : 'You have no notifications matching the selected filter criteria.'}
               icon="bell"
             />
           </div>
         ) : (
-          <div className="divide-y divide-slate-800/70">
-            {notifications.map((n) => {
+          <div className={isEmployee ? 'employee-notification-list' : 'divide-y divide-slate-800/70'} role={isEmployee ? 'list' : undefined}>
+            {visibleNotifications.map((n) => {
               const meta = TYPE_META[n.type] || TYPE_META.SYSTEM;
               return (
                 <div
                   key={n.id}
+                  role={isEmployee ? 'listitem' : undefined}
                   onClick={() => !n.isRead && handleMarkOneRead(n.id)}
                   className={`notification-row ${n.isRead ? "notification-read" : "notification-unread"} p-5 flex items-start justify-between gap-4 transition-all ${
                     n.isRead
@@ -229,6 +255,7 @@ export default function NotificationsPage() {
                     </div>
                   </div>
 
+                  {isEmployee && n.isRead && <span className="employee-notification-read-status"><Icon name="check" className="w-3.5 h-3.5" />Read</span>}
                   {!n.isRead && (
                     <button
                       onClick={(e) => {
@@ -247,7 +274,7 @@ export default function NotificationsPage() {
             })}
           </div>
         )}
-        {(isAdmin || isTrainingAdmin || isEmployee) && !loading && !error && <div className="activity-footer" role="status">Showing {notifications.length} notification{notifications.length === 1 ? '' : 's'} in this view</div>}
+        {(isAdmin || isTrainingAdmin || isEmployee) && !loading && !error && <div className="activity-footer" role="status">Showing {visibleNotifications.length} notification{visibleNotifications.length === 1 ? '' : 's'} in this view</div>}
       </div>
     </div>
   );

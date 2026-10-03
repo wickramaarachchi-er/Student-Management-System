@@ -25,10 +25,39 @@
 .employee-notifications .activity-card > .p-6 h3 { color: #172033; font-size: 16px; }
 .employee-notifications .activity-card > .p-6 p { margin-top: 8px; color: #64748b; font-size: 12px; line-height: 1.8; }
 .notification-action-error { padding: 12px 16px; background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; border-radius: 9px; font-size: 12px; line-height: 1.7; }
+.employee-notification-list { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; background: #f8fafc; }
+.employee-notifications .employee-notification-list .notification-row { border: 1px solid #e2e8f0; border-left: 4px solid #cbd5e1; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgb(15 23 42 / 3%); }
+.employee-notifications .employee-notification-list .notification-unread { border-left-color: #2563eb; border-color: #bfdbfe; border-left-width: 4px; background: #f5f9ff; }
+.employee-notifications .employee-notification-list .notification-row:last-child { border-bottom: 1px solid #e2e8f0; }
+.employee-notifications .employee-notification-list .notification-row:hover { background: #eff6ff; }
+.employee-notification-read-status { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 20px; font-size: 10px; font-weight: 600; white-space: nowrap; flex-shrink: 0; margin-top: 3px; }
+.employee-notifications .notification-title h4 { flex-basis: 100%; order: 2; }
+.employee-notifications .notification-date { display: inline-block; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+.employee-notifications .notification-mark-read { background: #2563eb; border-color: #2563eb; color: #fff; }
+.employee-notifications .notification-mark-read:hover { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.employee-inbox-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 22px; border-bottom: 1px solid #e2e8f0; background: #fff; }
+.employee-inbox-search { position: relative; flex: 1; min-width: 200px; }
+.employee-inbox-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+.employee-inbox-search input, .employee-inbox-toolbar select { width: 100%; min-height: 40px; padding: 10px 12px; background: #f8fafc; color: #172033; border: 1px solid #dbe3ef; border-radius: 9px; font-size: 12px; }
+.employee-inbox-search input { padding-left: 36px; }
+.employee-inbox-toolbar select { width: auto; max-width: 100%; color-scheme: light; }
+.employee-inbox-search input:focus, .employee-inbox-toolbar select:focus { outline: 2px solid #dbeafe; border-color: #2563eb; }
+.employee-inbox-clear { color: #2563eb; background: #eff6ff; }
+.employee-notifications .activity-card-heading { padding-block: 18px; }
+.employee-notifications .notification-row { padding: 18px; }
+.employee-notifications .notification-copy p { line-height: 1.75; }
+.employee-notifications .notification-title h4 { font-size: 13px; }
+.employee-notifications .notification-icon { width: 36px; height: 36px; border-radius: 10px; }
+.employee-notifications .notification-title { margin-bottom: 6px; }
 @media (max-width: 760px) {
   .employee-notifications .training-notifications-header { padding: 20px; }
   .employee-notifications .activity-card-heading { padding: 18px 16px; }
   .employee-notifications .notification-row { padding: 18px 16px; gap: 12px; }
   .employee-notifications .notification-mark-read { margin-left: 56px; }
   .employee-notifications .activity-footer { padding: 14px 16px; }
+  .employee-notification-list { padding: 16px; }
+  .employee-notification-read-status { margin-left: 56px; }
+  .employee-inbox-toolbar { padding: 14px 16px; }
+  .employee-notifications .notification-mark-read, .employee-notification-read-status { margin-left: 50px; }
 }
+@media (max-width: 480px) { .employee-inbox-search { flex-basis: 100%; min-width: 0; }.employee-inbox-toolbar select { width: 100%; } }

@@ -123,7 +123,7 @@ export default function PoliciesPage() {
   }, [policies]);
 
   return (
-    <div className={`space-y-6 ${isComplianceOfficer ? 'policies-management' : ''}`}>
+    <div className={isEmployee ? 'employee-policies-page' : `space-y-6 ${isComplianceOfficer ? 'policies-management' : ''}`}>
       {/* Toast Notification */}
       {toast && (
         <div
