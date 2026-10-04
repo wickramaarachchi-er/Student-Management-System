@@ -4,6 +4,15 @@
  */
 import rateLimit from 'express-rate-limit';
 
+export const passwordChangeRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  keyGenerator: (req) => req.user.id,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many password change attempts. Please try again in 15 minutes.' },
+});
+
 /**
  * Demo-friendly rate limiter for authentication routes (e.g. POST /api/auth/login).
  * Limit: 15 login requests per 15 minutes per IP address.

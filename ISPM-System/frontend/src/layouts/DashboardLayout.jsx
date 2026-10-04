@@ -16,7 +16,7 @@ export default function DashboardLayout() {
   const isAdminOverview = user?.role === 'SYSTEM_ADMIN' && ['/dashboard', '/users'].includes(pathname);
   const isAdminHelpdesk = user?.role === 'SYSTEM_ADMIN' && pathname === '/helpdesk';
   const isAdminActivity = user?.role === 'SYSTEM_ADMIN' && ['/notifications', '/audit-logs'].includes(pathname);
-  const isComplianceWorkspace = user?.role === 'COMPLIANCE_OFFICER' && ['/dashboard', '/policies', '/compliance', '/reports', '/audit-logs', '/notifications'].includes(pathname);
+  const isComplianceWorkspace = user?.role === 'COMPLIANCE_OFFICER' && ['/dashboard', '/policies', '/compliance', '/reports', '/audit-logs', '/notifications', '/profile'].includes(pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (

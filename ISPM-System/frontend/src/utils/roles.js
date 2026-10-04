@@ -19,11 +19,11 @@ export const ROLE_BADGE_STYLES = {
 
 /**
  * Navigation menus for each role.
- * Only 'Dashboard' is fully functional in this phase.
- * Other modules are routed to /coming-soon or their respective paths with a Coming Soon placeholder.
+ * Each role includes account settings alongside its workspace modules.
  */
 export const ROLE_NAV_ITEMS = {
   SYSTEM_ADMIN: [
+    { label: 'My Profile', path: '/profile', icon: 'user-check' },
     { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
     { label: 'User Management', path: '/users', icon: 'users' },
     { label: 'Helpdesk', path: '/helpdesk', icon: 'helpdesk' },
@@ -31,6 +31,7 @@ export const ROLE_NAV_ITEMS = {
     { label: 'Audit Logs', path: '/audit-logs', icon: 'shield-check' },
   ],
   COMPLIANCE_OFFICER: [
+    { label: 'My Profile', path: '/profile', icon: 'user-check' },
     { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
     { label: 'Policies', path: '/policies', icon: 'book' },
     { label: 'Compliance', path: '/compliance', icon: 'award' },
@@ -39,6 +40,7 @@ export const ROLE_NAV_ITEMS = {
     { label: 'Notifications', path: '/notifications', icon: 'bell' },
   ],
   TRAINING_ADMIN: [
+    { label: 'My Profile', path: '/profile', icon: 'user-check' },
     { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
     { label: 'Training', path: '/training', icon: 'academic-cap' },
     { label: 'Quizzes', path: '/quizzes', icon: 'clipboard-list' },
@@ -46,6 +48,7 @@ export const ROLE_NAV_ITEMS = {
     { label: 'Notifications', path: '/notifications', icon: 'bell' },
   ],
   EMPLOYEE: [
+    { label: 'My Profile', path: '/profile', icon: 'user-check' },
     { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
     { label: 'Policies', path: '/policies', icon: 'book' },
     { label: 'Training', path: '/training', icon: 'academic-cap' },

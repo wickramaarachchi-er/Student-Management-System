@@ -6,9 +6,9 @@
  * GET  /api/auth/me     – get current authenticated user profile
  */
 import { Router } from 'express';
-import { login, getMe } from '../controllers/auth.controller.js';
+import { login, getMe, changePassword } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/authenticate.js';
-import { loginRateLimiter } from '../middleware/rateLimiter.js';
+import { loginRateLimiter, passwordChangeRateLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
@@ -23,5 +23,6 @@ router.post('/login', loginRateLimiter, login);
  * Protected – requires a valid Bearer token.
  */
 router.get('/me', authenticate, getMe);
+router.post('/change-password', authenticate, passwordChangeRateLimiter, changePassword);
 
 export default router;

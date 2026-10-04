@@ -6,6 +6,7 @@
  *  - /login       – Public only (redirects to /dashboard if logged in)
  *  - /            – Redirects to /dashboard
  *  - /dashboard   – Protected (requires authenticated user)
+ *  - /profile     – Protected (all authenticated roles)
  *  - /users       – Protected (SYSTEM_ADMIN only)
  *  - /policies    – Protected (COMPLIANCE_OFFICER, EMPLOYEE)
  *  - /compliance  – Protected (COMPLIANCE_OFFICER only)
@@ -35,6 +36,7 @@ import ReportsPage from './pages/ReportsPage.jsx';
 import HelpdeskPage from './pages/HelpdeskPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
 import AuditLogsPage from './pages/AuditLogsPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 import ComingSoonPage from './pages/ComingSoonPage.jsx';
 
 export default function App() {
@@ -62,6 +64,7 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
         {/* User Management – SYSTEM_ADMIN only */}
         <Route

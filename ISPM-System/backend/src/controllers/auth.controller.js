@@ -4,7 +4,7 @@
  * Business logic lives in auth.service.js.
  */
 import { z } from 'zod';
-import { loginUser } from '../services/auth.service.js';
+import { loginUser, changeUserPassword } from '../services/auth.service.js';
 import { writeAuditLog, getClientIp } from '../services/audit.service.js';
 import { sendSuccess, sendError } from '../utils/apiResponse.js';
 
@@ -100,4 +100,33 @@ export async function getMe(req, res) {
     message: 'Current user retrieved successfully',
     data: { user: req.user },
   });
+}
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required').max(200),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters long')
+    .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'New password must be no more than 72 UTF-8 bytes'),
+  confirmPassword: z.string().min(1, 'Please confirm your new password').max(200),
+}).strict().refine((value) => value.newPassword === value.confirmPassword, {
+  message: 'New passwords do not match', path: ['confirmPassword'],
+});
+
+export async function changePassword(req, res, next) {
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return sendError(res, { status: 400, message: parsed.error.errors[0].message,
+      errors: parsed.error.flatten().fieldErrors });
+  }
+  try {
+    const { currentPassword, newPassword } = parsed.data;
+    await changeUserPassword(req.user.id, currentPassword, newPassword);
+    await writeAuditLog({
+      userId: req.user.id, userEmail: req.user.email, action: 'PASSWORD_CHANGED',
+      entityType: 'User', entityId: req.user.id,
+      description: 'User changed their own password', ipAddress: getClientIp(req),
+    });
+    return sendSuccess(res, { message: 'Your password has been changed successfully.' });
+  } catch (err) {
+    next(err);
+  }
 }

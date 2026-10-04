@@ -25,3 +25,10 @@ export async function loginRequest(email, password) {
 export async function getMeRequest() {
   return apiFetch('/auth/me');
 }
+
+export async function changePasswordRequest(currentPassword, newPassword, confirmPassword) {
+  return apiFetch('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+  });
+}

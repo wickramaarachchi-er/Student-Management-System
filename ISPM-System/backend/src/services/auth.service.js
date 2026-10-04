@@ -106,3 +106,25 @@ export async function getUserById(userId) {
   if (!user || !user.isActive) return null;
   return user;
 }
+
+export async function changeUserPassword(userId, currentPassword, newPassword) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || !user.isActive) {
+    throw Object.assign(new Error('Account not found or has been deactivated.'), { status: 401 });
+  }
+  if (!await bcrypt.compare(currentPassword, user.passwordHash)) {
+    throw Object.assign(new Error('Current password is incorrect.'), { status: 400 });
+  }
+  if (await bcrypt.compare(newPassword, user.passwordHash)) {
+    throw Object.assign(new Error('Choose a new password different from your current password.'), { status: 400 });
+  }
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  // Prevent simultaneous requests from overwriting a password changed since verification.
+  const result = await prisma.user.updateMany({
+    where: { id: userId, isActive: true, passwordHash: user.passwordHash },
+    data: { passwordHash },
+  });
+  if (!result.count) {
+    throw Object.assign(new Error('Your account changed. Please try again with your current password.'), { status: 409 });
+  }
+}

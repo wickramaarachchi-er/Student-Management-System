@@ -37,6 +37,9 @@ export default function TopBar({ onToggleMobileMenu }) {
 
       {/* Right: Notification Shortcut */}
       <div className="flex items-center gap-3">
+        <Link to="/profile" title="My profile" aria-label="My profile" className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <Icon name="user-check" className="w-5 h-5" />
+        </Link>
         <Link
           to="/notifications"
           title="Notifications"

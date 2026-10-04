@@ -28,7 +28,7 @@ export default function Sidebar({ onItemClick }) {
     EMPLOYEE: { title: 'Employee Workspace', icon: 'user-check' },
   };
   const workspace = workspaces[user?.role] || { title: 'Workspace', icon: 'shield' };
-  const operationPaths = ['/helpdesk', '/notifications', '/audit-logs'];
+  const operationPaths = ['/helpdesk', '/notifications', '/audit-logs', '/profile'];
   const groups = [
     { title: 'Workspace', items: navItems.filter((item) => !operationPaths.includes(item.path)) },
     { title: 'Operations', items: navItems.filter((item) => operationPaths.includes(item.path)) },
