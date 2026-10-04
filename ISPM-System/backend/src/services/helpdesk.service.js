@@ -3,7 +3,7 @@
  * Business logic for Helpdesk tickets and responses.
  */
 import prisma from '../config/prisma.js';
-import { createNotification, createBulkNotifications } from './notification.service.js';
+import { createNotification, createBulkNotifications, notifyRoleOfEmployeeAction } from './notification.service.js';
 
 const USER_SELECT_SAFE = {
   id: true,
@@ -106,6 +106,11 @@ export async function createTicket({ creatorId, subject, description, priority =
     },
   });
 
+  await notifyRoleOfEmployeeAction({
+    role: 'SYSTEM_ADMIN', employeeId: creatorId, title: 'New Helpdesk Ticket',
+    message: 'raised a ticket: "' + ticket.subject + '" (' + ticket.priority + ' priority).',
+    type: 'TICKET_UPDATE', resourceRef: ticket.id,
+  });
   return ticket;
 }
 

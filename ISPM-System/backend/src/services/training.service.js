@@ -3,7 +3,7 @@
  * Business logic for Training Modules and Employee Training Progress.
  */
 import prisma from '../config/prisma.js';
-import { createBulkNotifications } from './notification.service.js';
+import { createBulkNotifications, notifyRoleOfEmployeeAction } from './notification.service.js';
 
 /**
  * List training modules based on user role and filters.
@@ -419,35 +419,22 @@ export async function completeTraining(moduleId, userId) {
     },
   });
 
+  if (existing?.status === 'COMPLETED') return existing;
   const now = new Date();
-
-  if (existing) {
-    // If already COMPLETED, idempotent return
-    if (existing.status === 'COMPLETED') {
-      return existing;
-    }
-
-    return prisma.trainingProgress.update({
-      where: { id: existing.id },
-      data: {
-        status: 'COMPLETED',
-        progressPercent: 100,
-        completedAt: now,
-      },
-    });
-  }
-
-  // If completing directly without explicit start
-  return prisma.trainingProgress.create({
-    data: {
-      userId,
-      trainingModuleId: moduleId,
-      status: 'COMPLETED',
-      progressPercent: 100,
-      assignedAt: now,
-      completedAt: now,
-    },
+  const progress = existing
+    ? await prisma.trainingProgress.update({
+        where: { id: existing.id },
+        data: { status: 'COMPLETED', progressPercent: 100, completedAt: now },
+      })
+    : await prisma.trainingProgress.create({
+        data: { userId, trainingModuleId: moduleId, status: 'COMPLETED',
+          progressPercent: 100, assignedAt: now, completedAt: now },
+      });
+  await notifyRoleOfEmployeeAction({
+    role: 'TRAINING_ADMIN', employeeId: userId, title: 'Training Completed',
+    message: 'completed "' + module.title + '".', resourceRef: module.id,
   });
+  return progress;
 }
 
 /**

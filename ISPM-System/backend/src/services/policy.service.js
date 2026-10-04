@@ -3,7 +3,7 @@
  * Business logic for Information Security Policies, Versioning, and Acknowledgements.
  */
 import prisma from '../config/prisma.js';
-import { createBulkNotifications } from './notification.service.js';
+import { createBulkNotifications, notifyRoleOfEmployeeAction } from './notification.service.js';
 
 /**
  * Helper to determine the current published PolicyVersion for a given policy.
@@ -573,6 +573,11 @@ export async function acknowledgePolicy(policyId, user) {
     },
   });
 
+  await notifyRoleOfEmployeeAction({
+    role: 'COMPLIANCE_OFFICER', employeeId: user.id, title: 'Policy Read and Acknowledged',
+    message: 'read and acknowledged "' + policy.title + '" (version ' + currentVersion.versionNumber + ').',
+    resourceRef: policy.id,
+  });
   return {
     acknowledgement: newAck,
     isNew: true,

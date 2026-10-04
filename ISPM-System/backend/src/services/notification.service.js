@@ -133,3 +133,25 @@ export async function markAllNotificationsAsRead(userId) {
 
   return { count: result.count };
 }
+
+/** Notify active staff without failing an employee action that has already been saved. */
+export async function notifyRoleOfEmployeeAction({ role, employeeId, title, message, type = 'SYSTEM', resourceRef }) {
+  try {
+    const employee = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: { firstName: true, lastName: true, email: true, role: true },
+    });
+    if (!employee || employee.role !== 'EMPLOYEE') return { count: 0 };
+    const recipients = await prisma.user.findMany({
+      where: { role, isActive: true }, select: { id: true },
+    });
+    const name = [employee.firstName, employee.lastName].filter(Boolean).join(' ') || employee.email;
+    return await createBulkNotifications({
+      recipientIds: recipients.map(user => user.id), title,
+      message: name + ' ' + message, type, resourceRef,
+    });
+  } catch (error) {
+    console.error('[notification.service] Failed to notify staff of employee action:', error.message);
+    return { count: 0 };
+  }
+}

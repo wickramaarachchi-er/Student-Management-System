@@ -4,6 +4,7 @@
  * and Authoritative Server-Side Scoring.
  */
 import prisma from '../config/prisma.js';
+import { notifyRoleOfEmployeeAction } from './notification.service.js';
 
 /**
  * Strips all answer keys, correct option indicators, and scoring secrets
@@ -738,7 +739,7 @@ export async function submitQuizAttempt(quizId, attemptId, userId, submittedAnsw
   const now = new Date();
 
   // 6. Save in Prisma transaction
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     // Record answers
     if (answerRecords.length > 0) {
       await tx.quizAnswer.createMany({
@@ -771,6 +772,12 @@ export async function submitQuizAttempt(quizId, attemptId, userId, submittedAnsw
       submittedAt: now,
     };
   });
+  await notifyRoleOfEmployeeAction({
+    role: 'TRAINING_ADMIN', employeeId: userId, title: 'Quiz Completed',
+    message: 'completed "' + quiz.title + '" with a score of ' + scorePercent + '% (' + (isPassed ? 'passed' : 'failed') + ').',
+    type: isPassed ? 'QUIZ_PASSED' : 'QUIZ_FAILED', resourceRef: quiz.id,
+  });
+  return result;
 }
 
 /**
