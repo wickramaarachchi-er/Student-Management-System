@@ -28,12 +28,16 @@ export async function getUnreadCountRequest() {
  * Mark a single notification as read.
  */
 export async function markAsReadRequest(id) {
-  return apiFetch(`/notifications/${id}/read`, { method: 'PATCH' });
+  const response = await apiFetch(`/notifications/${id}/read`, { method: 'PATCH' });
+  if (response.ok && response.data?.success) window.dispatchEvent(new Event('notifications-updated'));
+  return response;
 }
 
 /**
  * Mark all notifications for the authenticated user as read.
  */
 export async function markAllAsReadRequest() {
-  return apiFetch('/notifications/read-all', { method: 'PATCH' });
+  const response = await apiFetch('/notifications/read-all', { method: 'PATCH' });
+  if (response.ok && response.data?.success) window.dispatchEvent(new Event('notifications-updated'));
+  return response;
 }
